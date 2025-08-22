@@ -402,7 +402,7 @@ class NFLColorPalette:
 
     def create_conference_palette(
         self, conference: str = "NFL", color_type: str = "primary"
-    ) -> list[str]:
+    ) -> dict[str, str]:
         """Create color palette for all teams in a conference.
 
         Args:
@@ -410,7 +410,7 @@ class NFLColorPalette:
             color_type: Type of color to use
 
         Returns:
-            List of hex color codes
+            Dictionary mapping team abbreviations to hex color codes
         """
         from .logos import get_available_teams, get_conference_teams
 
@@ -419,11 +419,12 @@ class NFLColorPalette:
         else:
             teams = get_conference_teams(conference)
 
-        return self.create_team_palette(teams, color_type)
+        colors = self.create_team_palette(teams, color_type)
+        return dict(zip(teams, colors))
 
     def create_division_palette(
         self, division: str, color_type: str = "primary"
-    ) -> list[str]:
+    ) -> dict[str, str]:
         """Create color palette for teams in a division.
 
         Args:
@@ -431,7 +432,7 @@ class NFLColorPalette:
             color_type: Type of color to use
 
         Returns:
-            List of hex color codes
+            Dictionary mapping team abbreviations to hex color codes
 
         Note:
             This is a simplified implementation. Real implementation would
@@ -454,7 +455,9 @@ class NFLColorPalette:
             msg = f"Invalid division: {division}"
             raise ValueError(msg)
 
-        return self.create_team_palette(divisions[division], color_type)
+        teams = divisions[division]
+        colors = self.create_team_palette(teams, color_type)
+        return dict(zip(teams, colors))
 
     def get_contrasting_color(self, team: str, background: str = "white") -> str:
         """Get contrasting color for text over team color.

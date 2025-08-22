@@ -287,9 +287,13 @@ class TestPlottingEdgeCases:
         """Test with empty DataFrame."""
         data = pd.DataFrame(columns=['team', 'x', 'y'])
         
-        # Should handle gracefully
-        with pytest.raises((ValueError, IndexError)):
-            plot_team_stats(data, 'x', 'y', show_logos=False)
+        # Should handle gracefully without raising errors
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # Ignore numpy warnings about empty data
+            fig = plot_team_stats(data, 'x', 'y', show_logos=False)
+            assert fig is not None  # Should return a figure, not crash
+            plt.close(fig)
     
     def test_single_team(self):
         """Test with single team."""

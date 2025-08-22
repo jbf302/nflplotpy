@@ -13,7 +13,7 @@ from PIL import Image
 
 class NFLAssetManager:
     """Manages downloading and caching of NFL assets.
-    
+
     Includes logos, headshots, and wordmarks.
     """
 

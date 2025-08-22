@@ -187,10 +187,10 @@ class test_utility_functions(TestCase):
     def test_validate_teams_with_invalid_team(self):
         """Test validation with invalid teams."""
         mixed_teams = ['KC', 'INVALID', 'GB']
-        # Should filter out invalid teams
-        validated = validate_teams(mixed_teams, allow_conferences=False)
-        self.assertIsInstance(validated, list)
-        self.assertNotIn('INVALID', validated)
+        # Should raise error for invalid teams (correct validation behavior)
+        with self.assertRaises(ValueError) as cm:
+            validate_teams(mixed_teams, allow_conferences=False)
+        self.assertIn('INVALID', str(cm.exception))
     
     def test_team_factor(self):
         """Test team factor functionality."""

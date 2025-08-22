@@ -283,7 +283,7 @@ class TestUtilityFunctions:
         assert team == 'KC'
         
         # Non-existent color
-        team = discover_team_from_colors('#ffffff')
+        team = discover_team_from_colors('#999999')
         assert team is None
     
     def test_get_season_info(self):
@@ -313,7 +313,7 @@ class TestUtilityFunctions:
         
         output = f.getvalue()
         assert '🏈 nflplotpy System Report' in output
-        assert 'Package Information' in output
+        assert 'Package: nflplotpy' in output
 
 
 class TestIntegrationFeatures:

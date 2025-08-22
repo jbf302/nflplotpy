@@ -330,62 +330,91 @@ def nfl_sitrep() -> None:
 
     Equivalent to R's nflverse_sitrep().
     """
+    print("🏈 nflplotpy System Report")
+    print("=" * 50)
 
     # Package information
     pkg_info = get_nflverse_info()
+    print(f"\nPackage: {pkg_info['package']} v{pkg_info['version']}")
+    print(f"Description: {pkg_info['description']}")
+    print(f"Ecosystem: {pkg_info['ecosystem']}")
 
     # System information
+    import sys
+    print(f"\nPython: {sys.version}")
+    print(f"Platform: {sys.platform}")
 
-    # Package versions
+    # Core dependencies
+    print("\nCore Dependencies:")
+    core_deps = ["pandas", "numpy", "matplotlib", "PIL"]
+    for dep in core_deps:
+        try:
+            module = __import__(dep)
+            print(f"  {dep}: {module.__version__}")
+        except ImportError:
+            print(f"  {dep}: Not installed")
+        except AttributeError:
+            print(f"  {dep}: Installed (version unavailable)")
 
     # Optional dependencies
+    print("\nOptional Dependencies:")
     optional_deps = []
 
     try:
         import plotly
 
-        optional_deps.append(f"plotly: {plotly.__version__}")
+        optional_deps.append(f"  plotly: {plotly.__version__}")
     except ImportError:
-        optional_deps.append("plotly: Not installed")
+        optional_deps.append("  plotly: Not installed")
 
     try:
         import seaborn as sns
 
-        optional_deps.append(f"seaborn: {sns.__version__}")
+        optional_deps.append(f"  seaborn: {sns.__version__}")
     except ImportError:
-        optional_deps.append("seaborn: Not installed")
+        optional_deps.append("  seaborn: Not installed")
 
     try:
         import PIL
 
-        optional_deps.append(f"PIL/Pillow: {PIL.__version__}")
+        optional_deps.append(f"  PIL/Pillow: {PIL.__version__}")
     except ImportError:
-        optional_deps.append("PIL/Pillow: Not installed")
+        optional_deps.append("  PIL/Pillow: Not installed")
 
     try:
         import requests
 
-        optional_deps.append(f"requests: {requests.__version__}")
+        optional_deps.append(f"  requests: {requests.__version__}")
     except ImportError:
-        optional_deps.append("requests: Not installed")
+        optional_deps.append("  requests: Not installed")
 
-    for _dep in optional_deps:
-        pass
+    for dep in optional_deps:
+        print(dep)
 
     # Asset cache information
+    print("\nAsset Cache:")
     try:
         from .assets import NFLAssetManager
 
         manager = NFLAssetManager()
-        manager.get_cache_info()
+        cache_info = manager.get_cache_info()
+        print(f"  Cache directory: {cache_info['cache_dir']}")
+        print(f"  Logos cached: {cache_info['logos_count']}")
+        print(f"  Headshots cached: {cache_info['headshots_count']}")
+        print(f"  Wordmarks cached: {cache_info['wordmarks_count']}")
+        print(f"  Total cache size: {cache_info['total_size_bytes']} bytes")
 
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"  Error accessing cache: {e}")
 
     # Team data availability
-    get_available_teams()
+    teams = get_available_teams()
+    print(f"\nTeam Data:")
+    print(f"  Available teams: {len(teams)}")
+    print(f"  Sample teams: {teams[:5]}")
 
     # URL availability (sample check)
+    print("\nURL Connectivity:")
     try:
         from .urls import get_url_manager
 
@@ -406,38 +435,53 @@ def nfl_sitrep() -> None:
             except Exception:
                 pass
 
-    except Exception:
-        pass
+        print(f"  Logo URLs tested: {len(test_teams)}")
+        print(f"  Working URLs: {working_urls}")
+
+    except Exception as e:
+        print(f"  Error testing URLs: {e}")
 
     # Plotting backends
+    print("\nPlotting Backends:")
     backends = pkg_info["supported_backends"]
     for backend in backends:
         if backend == "matplotlib":
-            pass
+            print(f"  {backend}: Available")
         elif backend == "plotly":
-            with contextlib.suppress(ImportError):
+            try:
                 import plotly
-
+                print(f"  {backend}: Available (v{plotly.__version__})")
+            except ImportError:
+                print(f"  {backend}: Not installed")
         elif backend == "seaborn":
-            with contextlib.suppress(ImportError):
+            try:
                 import seaborn as sns
+                print(f"  {backend}: Available (v{sns.__version__})")
+            except ImportError:
+                print(f"  {backend}: Not installed")
 
     # Integration status
-    with contextlib.suppress(ImportError):
+    print("\nIntegration Status:")
+    try:
         import nfl_data_py
+        print(f"  nfl_data_py: Available (v{nfl_data_py.__version__})")
+    except ImportError:
+        print("  nfl_data_py: Not installed")
 
     # Jupyter notebook detection
+    print("\nEnvironment:")
     try:
         from IPython import get_ipython
 
         if get_ipython() is not None:
-            pass
+            print("  Running in: Jupyter/IPython")
         else:
-            pass
+            print("  Running in: Standard Python")
     except ImportError:
-        pass
+        print("  Running in: Standard Python")
 
     # Recommendations
+    print("\nRecommendations:")
     recommendations = []
 
     try:
@@ -462,8 +506,13 @@ def nfl_sitrep() -> None:
         )
 
     if recommendations:
-        for _rec in recommendations:
-            pass
+        for rec in recommendations:
+            print(f"  • {rec}")
+    else:
+        print("  All recommended packages are installed! 🎉")
+
+    print("\n" + "=" * 50)
+    print("Report complete! Package is ready to use.")
 
 
 def clear_all_cache() -> None:
@@ -542,7 +591,7 @@ def get_player_team_mapping(season: int = 2024) -> dict[str, str]:
     }
 
     warnings.warn(
-        f"Player-team mapping not fully implemented for {season}. Using sample data."
+        f"Player-team mapping not fully implemented for {season}. Using sample data.", stacklevel=2
     )
     return sample_mapping
 
