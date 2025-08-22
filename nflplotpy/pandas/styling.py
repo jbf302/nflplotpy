@@ -232,7 +232,7 @@ class NFLTableStyler:
 def style_with_logos(df: pd.DataFrame, 
                     team_columns: Union[str, List[str]],
                     logo_height: int = 25,
-                    replace_text: bool = True) -> pd.io.formats.style.Styler:
+                    replace_text: bool = True):
     """Add team logos to DataFrame columns.
     
     Equivalent to R's gt_nfl_logos().
@@ -257,7 +257,7 @@ def style_with_logos(df: pd.DataFrame,
 
 def style_with_headshots(df: pd.DataFrame,
                         player_columns: Union[str, List[str]], 
-                        headshot_height: int = 30) -> pd.io.formats.style.Styler:
+                        headshot_height: int = 30):
     """Add player headshots to DataFrame columns.
     
     Equivalent to R's gt_nfl_headshots().
@@ -295,7 +295,7 @@ def style_with_headshots(df: pd.DataFrame,
 
 def style_with_wordmarks(df: pd.DataFrame,
                         team_columns: Union[str, List[str]],
-                        wordmark_height: int = 20) -> pd.io.formats.style.Styler:
+                        wordmark_height: int = 20):
     """Add team wordmarks to DataFrame columns.
     
     Equivalent to R's gt_nfl_wordmarks().

@@ -1,6 +1,6 @@
 [project]
 name = "nflplotpy"
-dynamic = ["version"]
+version = "0.1.0"
 requires-python = ">=3.8"
 description = "Python NFL visualization package - nflplotR equivalent for matplotlib, plotly, and seaborn"
 urls = { homepage = "https://github.com/joelfeinberg/nflplotpy"}
@@ -8,6 +8,7 @@ authors = [{name = "Joel Feinberg", email = "jbf302@gmail.com"}]
 readme = "README.md"
 license = {text = "MIT"}
 dependencies = [
+    "appdirs>=1.4.4",
     "matplotlib>=3.5.0",
     "pillow>=8.0.0",
     "requests>=2.25.0",
@@ -56,8 +57,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["nflplotpy"]
 
-[tool.setuptools.dynamic]
-version = {attr = "nflplotpy.__version__"}
 
 [tool.ruff]
 line-length = 88
