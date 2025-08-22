@@ -1,0 +1,93 @@
+[project]
+name = "nflplotpy"
+dynamic = ["version"]
+requires-python = ">=3.8"
+description = "Python NFL visualization package - nflplotR equivalent for matplotlib, plotly, and seaborn"
+urls = { homepage = "https://github.com/joelfeinberg/nflplotpy"}
+authors = [{name = "Joel Feinberg", email = "jbf302@gmail.com"}]
+readme = "README.md"
+license = {text = "MIT"}
+dependencies = [
+    "matplotlib>=3.5.0",
+    "pillow>=8.0.0",
+    "requests>=2.25.0",
+    "pandas>=1.3,<3.0",
+    "numpy>=1.20,<3.0",
+]
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Topic :: Scientific/Engineering :: Information Analysis',
+    'Topic :: Scientific/Engineering :: Visualization',
+]
+keywords = ["nfl", "football", "visualization", "plotting", "matplotlib", "plotly", "seaborn", "nflverse"]
+
+[project.optional-dependencies]
+plotly = ["plotly>=5.0.0"]
+seaborn = ["seaborn>=0.11.0"]
+all = ["plotly>=5.0.0", "seaborn>=0.11.0"]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+    "build",
+    "twine",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["nflplotpy"]
+
+[tool.setuptools.dynamic]
+version = {attr = "nflplotpy.__version__"}
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "EM", "EXE", "FA", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "TD", "FIX", "ERA", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "PERF", "FURB", "LOG", "RUF"]
+ignore = ["E501", "COM812", "ISC001"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "PLR2004", "SLF001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--strict-markers --strict-config --cov=nflplotpy"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
