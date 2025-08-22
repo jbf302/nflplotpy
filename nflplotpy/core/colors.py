@@ -1,4 +1,5 @@
 """NFL team colors and color palette management."""
+
 from __future__ import annotations
 
 import matplotlib.colors as mcolors

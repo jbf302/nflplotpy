@@ -1,4 +1,5 @@
 """Layout and styling utilities for plotly NFL visualizations."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -230,7 +231,8 @@ def create_conference_subplot(
                 mode="markers",
                 name="AFC",
                 marker={
-                    "size": afc_data.get("size", 10), "color": afc_data.get("color", "blue")
+                    "size": afc_data.get("size", 10),
+                    "color": afc_data.get("color", "blue"),
                 },
             ),
             row=1,
@@ -246,7 +248,8 @@ def create_conference_subplot(
                 mode="markers",
                 name="NFC",
                 marker={
-                    "size": nfc_data.get("size", 10), "color": nfc_data.get("color", "red")
+                    "size": nfc_data.get("size", 10),
+                    "color": nfc_data.get("color", "red"),
                 },
             ),
             row=1,
@@ -255,7 +258,6 @@ def create_conference_subplot(
 
     # Apply NFL theming
     return apply_nfl_styling(fig, theme="default")
-
 
 
 def create_division_subplot(
@@ -309,7 +311,6 @@ def create_division_subplot(
 
     # Apply NFL theming
     return apply_nfl_styling(fig, theme="default")
-
 
 
 def add_nfl_watermark(

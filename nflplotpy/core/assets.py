@@ -1,4 +1,5 @@
 """Asset management for NFL logos, headshots, and other graphics."""
+
 from __future__ import annotations
 
 import io
@@ -65,18 +66,17 @@ class NFLAssetManager:
             response.raise_for_status()
 
             # Save to cache
-            with open(cache_path, "wb") as f:
-                f.write(response.content)
+            cache_path.write_bytes(response.content)
 
             # Return PIL Image
             return Image.open(io.BytesIO(response.content))
 
         except requests.RequestException as e:
             msg = f"Failed to download image from {url}: {e}"
-            raise requests.RequestException(msg)
+            raise requests.RequestException(msg) from e
         except Exception as e:
             msg = f"Failed to process image from {url}: {e}"
-            raise Exception(msg)
+            raise RuntimeError(msg) from e
 
     def _load_cached_image(self, cache_path: Path) -> Image.Image:
         """Load image from cache.
@@ -90,13 +90,13 @@ class NFLAssetManager:
         return Image.open(cache_path)
 
     def get_logo(
-        self, team: str, format: str = "png", force_refresh: bool = False
+        self, team: str, image_format: str = "png", force_refresh: bool = False
     ) -> Image.Image:
         """Get NFL team logo.
 
         Args:
             team: Team abbreviation (e.g., 'ARI', 'ATL')
-            format: Image format ('png', 'svg')
+            image_format: Image format ('png', 'svg')
             force_refresh: If True, re-download even if cached
 
         Returns:

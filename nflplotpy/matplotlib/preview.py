@@ -3,6 +3,7 @@
 Equivalent to R's ggpreview() function for previewing plots
 in specified dimensions and settings.
 """
+
 from __future__ import annotations
 
 import os
@@ -143,9 +144,7 @@ def preview_with_dimensions(
                 f"Unknown dimension preset: {dimensions}. "
                 f"Available: {list(predefined_dimensions.keys())}"
             )
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
         width, height = predefined_dimensions[dimensions]
     else:
         width, height = dimensions
@@ -291,7 +290,6 @@ def save_preview_grid(
 
     combined_fig.savefig(output_path, **save_kwargs)
     plt.close(combined_fig)
-
 
 
 def quick_preview(plot_func, *args, **kwargs) -> str | None:

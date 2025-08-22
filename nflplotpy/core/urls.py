@@ -3,6 +3,7 @@
 Provides comprehensive URL mapping and management for team logos,
 player headshots, wordmarks, and other NFL assets.
 """
+
 from __future__ import annotations
 
 import re
@@ -65,9 +66,7 @@ class PlayerHeadshotURLBuilder:
     )
 
     @classmethod
-    def get_espn_headshot_url(
-        cls, player_id: str | int, size: str = "full"
-    ) -> str:
+    def get_espn_headshot_url(cls, player_id: str | int, size: str = "full") -> str:
         """Get ESPN headshot URL for a player.
 
         Args:
@@ -128,7 +127,9 @@ class PlayerHeadshotURLBuilder:
                     # Would need team info for NFL.com URLs
                     pass
             except Exception as e:
-                warnings.warn(f"Could not build {source} URL for {player_id}: {e}", stacklevel=2)
+                warnings.warn(
+                    f"Could not build {source} URL for {player_id}: {e}", stacklevel=2
+                )
 
         return urls
 
@@ -168,7 +169,9 @@ class AssetURLManager:
         """
         team = team.upper()
         if team not in self.wordmarks:
-            warnings.warn(f"No wordmark URL found for team: {team}, using logo", stacklevel=2)
+            warnings.warn(
+                f"No wordmark URL found for team: {team}, using logo", stacklevel=2
+            )
             return self.get_logo_url(team)
         return self.wordmarks[team]
 

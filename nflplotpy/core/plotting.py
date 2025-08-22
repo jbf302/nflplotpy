@@ -1,4 +1,5 @@
 """High-level plotting functions with nfl_data_py integration."""
+
 from __future__ import annotations
 
 import warnings
@@ -224,7 +225,6 @@ def _plot_team_stats_plotly(
     return apply_nfl_styling(fig, theme="default")
 
 
-
 def plot_player_comparison(
     data: pd.DataFrame,
     players: list[str],
@@ -267,7 +267,10 @@ def plot_player_comparison(
         raise ValueError(msg)
 
     if team_column not in player_data.columns:
-        warnings.warn(f"Team column '{team_column}' not found. Using generic colors.", stacklevel=2)
+        warnings.warn(
+            f"Team column '{team_column}' not found. Using generic colors.",
+            stacklevel=2,
+        )
         use_team_colors = False
     else:
         use_team_colors = True
@@ -285,9 +288,7 @@ def plot_player_comparison(
             **kwargs,
         )
     msg = "Plotly backend for player comparison not yet implemented"
-    raise NotImplementedError(
-        msg
-    )
+    raise NotImplementedError(msg)
 
 
 def _plot_player_comparison_matplotlib(

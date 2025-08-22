@@ -1,4 +1,5 @@
 """NFL team logos and logo management."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -215,7 +216,7 @@ def get_asset_manager() -> NFLAssetManager:
 
 
 def get_team_logo(
-    team: str, format: str = "png", force_refresh: bool = False
+    team: str, image_format: str = "png", *, force_refresh: bool = False
 ) -> Image.Image:
     """Get NFL team logo as PIL Image.
 
@@ -223,11 +224,11 @@ def get_team_logo(
 
     Args:
         team: Team abbreviation (e.g., 'ARI', 'ATL')
-        format: Image format ('png', 'svg')
+        image_format: Image format ('png', 'svg')
         force_refresh: If True, re-download even if cached
 
     Returns:
         PIL Image object
     """
     manager = get_asset_manager()
-    return manager.get_logo(team, format, force_refresh)
+    return manager.get_logo(team, image_format, force_refresh)

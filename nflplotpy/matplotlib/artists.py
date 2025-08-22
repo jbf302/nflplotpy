@@ -1,4 +1,5 @@
 """Custom matplotlib artists for NFL logos and headshots."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

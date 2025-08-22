@@ -3,11 +3,13 @@
 Provides equivalent functionality to R's gt_nfl_logos, gt_nfl_headshots, etc.
 for creating NFL-themed tables with team logos, player headshots, and styling.
 """
+
 from __future__ import annotations
 
 import base64
 import warnings
 from io import BytesIO
+from pathlib import Path
 
 import pandas as pd
 from PIL import Image
@@ -237,8 +239,7 @@ class NFLTableStyler:
             **kwargs: Arguments passed to to_html()
         """
         html_content = self.to_html(**kwargs)
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(html_content)
+        Path(filename).write_text(html_content, encoding="utf-8")
 
 
 def style_with_logos(
@@ -287,7 +288,9 @@ def style_with_headshots(
     Note:
         Currently uses placeholder implementation pending headshot URL system.
     """
-    warnings.warn("Player headshots not yet fully implemented - using placeholders", stacklevel=2)
+    warnings.warn(
+        "Player headshots not yet fully implemented - using placeholders", stacklevel=2
+    )
 
     if isinstance(player_columns, str):
         player_columns = [player_columns]
@@ -325,7 +328,9 @@ def style_with_wordmarks(
     Note:
         Currently uses placeholder implementation pending wordmark URL system.
     """
-    warnings.warn("Team wordmarks not yet fully implemented - using team names", stacklevel=2)
+    warnings.warn(
+        "Team wordmarks not yet fully implemented - using team names", stacklevel=2
+    )
 
     if isinstance(team_columns, str):
         team_columns = [team_columns]

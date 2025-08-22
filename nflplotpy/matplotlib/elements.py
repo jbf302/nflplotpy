@@ -3,6 +3,7 @@
 Provides functions to replace text elements (axis labels, titles, etc.)
 with NFL team logos, similar to R's element_nfl_logo() functionality.
 """
+
 from __future__ import annotations
 
 import warnings
@@ -199,7 +200,9 @@ def set_title_with_logos(
         # Calculate positions
         n_teams = len(teams)
         if n_teams > 6:
-            warnings.warn("Too many teams for above positioning, using first 6", stacklevel=2)
+            warnings.warn(
+                "Too many teams for above positioning, using first 6", stacklevel=2
+            )
             teams = teams[:6]
             n_teams = 6
 
@@ -253,9 +256,7 @@ def add_logo_watermark(
 
     if position not in positions:
         msg = f"Invalid position: {position}. Choose from: {list(positions.keys())}"
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
 
     x, y = positions[position]
 

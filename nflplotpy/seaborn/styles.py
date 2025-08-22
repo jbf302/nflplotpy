@@ -1,4 +1,5 @@
 """Seaborn styling and integration for NFL visualizations."""
+
 from __future__ import annotations
 
 import matplotlib.pyplot as plt

@@ -1,7 +1,9 @@
 """Utility functions for nflplotpy."""
+
 from __future__ import annotations
 
 import contextlib
+import warnings
 from typing import Any
 
 import numpy as np
@@ -116,9 +118,7 @@ def team_tiers(
     raise ValueError(msg)
 
 
-def validate_teams(
-    teams: str | list[str], allow_conferences: bool = True
-) -> list[str]:
+def validate_teams(teams: str | list[str], allow_conferences: bool = True) -> list[str]:
     """Validate and normalize team abbreviations.
 
     Args:
@@ -330,8 +330,6 @@ def nfl_sitrep() -> None:
     Equivalent to R's nflverse_sitrep().
     """
 
-
-
     # Package information
     pkg_info = get_nflverse_info()
 
@@ -380,7 +378,6 @@ def nfl_sitrep() -> None:
         manager = NFLAssetManager()
         manager.get_cache_info()
 
-
     except Exception:
         pass
 
@@ -408,7 +405,6 @@ def nfl_sitrep() -> None:
             except:
                 pass
 
-
     except Exception:
         pass
 
@@ -425,11 +421,9 @@ def nfl_sitrep() -> None:
             with contextlib.suppress(ImportError):
                 import seaborn as sns
 
-
     # Integration status
     with contextlib.suppress(ImportError):
         import nfl_data_py
-
 
     # Jupyter notebook detection
     try:
@@ -441,7 +435,6 @@ def nfl_sitrep() -> None:
             pass
     except ImportError:
         pass
-
 
     # Recommendations
     recommendations = []
@@ -461,7 +454,7 @@ def nfl_sitrep() -> None:
         )
 
     try:
-        import nfl_data_py
+        import nfl_data_py  # noqa: F401
     except ImportError:
         recommendations.append(
             "Install nfl_data_py for NFL data: pip install nfl_data_py"
@@ -482,7 +475,6 @@ def clear_all_cache() -> None:
 
         manager = NFLAssetManager()
         manager.get_cache_info()
-
 
         manager.clear_cache()
 

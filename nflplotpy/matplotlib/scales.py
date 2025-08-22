@@ -1,4 +1,5 @@
 """Color scales and themes for matplotlib integration."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -57,7 +58,6 @@ def set_team_colors(
         data_values = teams
 
     return dict(zip(data_values, colors))
-
 
 
 def set_team_fill_colors(
@@ -229,7 +229,6 @@ def create_team_scatter_colors(
     # Normalize values
     norm = mcolors.Normalize(vmin=min(values), vmax=max(values))
     return [cmap(norm(v)) for v in values]
-
 
 
 def add_team_color_legend(

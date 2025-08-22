@@ -1,4 +1,5 @@
 """Custom plotly traces for NFL logos and headshots."""
+
 from __future__ import annotations
 
 import base64
@@ -233,7 +234,9 @@ def create_team_scatter(
                 y=y,
                 mode="markers",
                 marker={
-                    "size": marker_size, "color": colors, "line": {"width": 2, "color": "white"}
+                    "size": marker_size,
+                    "color": colors,
+                    "line": {"width": 2, "color": "white"},
                 },
                 text=teams,
                 hovertemplate="<b>%{text}</b><br>X: %{x}<br>Y: %{y}<extra></extra>",
