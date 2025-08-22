@@ -340,6 +340,7 @@ def nfl_sitrep() -> None:
 
     # System information
     import sys
+
     print(f"\nPython: {sys.version}")
     print(f"Platform: {sys.platform}")
 
@@ -449,12 +450,14 @@ def nfl_sitrep() -> None:
         elif backend == "plotly":
             try:
                 import plotly
+
                 print(f"  {backend}: Available (v{plotly.__version__})")
             except ImportError:
                 print(f"  {backend}: Not installed")
         elif backend == "seaborn":
             try:
                 import seaborn as sns
+
                 print(f"  {backend}: Available (v{sns.__version__})")
             except ImportError:
                 print(f"  {backend}: Not installed")
@@ -463,6 +466,7 @@ def nfl_sitrep() -> None:
     print("\nIntegration Status:")
     try:
         import nfl_data_py
+
         print(f"  nfl_data_py: Available (v{nfl_data_py.__version__})")
     except ImportError:
         print("  nfl_data_py: Not installed")
@@ -590,7 +594,8 @@ def get_player_team_mapping(season: int = 2024) -> dict[str, str]:
     }
 
     warnings.warn(
-        f"Player-team mapping not fully implemented for {season}. Using sample data.", stacklevel=2
+        f"Player-team mapping not fully implemented for {season}. Using sample data.",
+        stacklevel=2,
     )
     return sample_mapping
 
