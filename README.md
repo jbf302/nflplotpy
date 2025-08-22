@@ -32,7 +32,34 @@ nflplot.apply_nfl_theme(ax, team='KC')
 plt.show()
 ```
 
-## Core Features
+## 🖼️ Gallery & Examples
+
+### Team Performance Analysis with Real NFL Data
+
+<div align="center">
+
+**All Teams EPA Analysis**  
+![All Teams EPA](examples/2024_all_teams_epa.png)
+
+**Division Breakdown**  
+![Division Breakdown](examples/2024_divisions_epa.png)
+
+*Examples using real 2024 NFL Expected Points Added (EPA) data with team logos*
+
+</div>
+
+### 📚 **Comprehensive Examples Available**
+
+Check out our [examples directory](examples/) for detailed code and documentation:
+
+- **[`nfl_examples.py`](examples/nfl_examples.py)**: Real 2024 NFL data analysis with team logos
+- **[`nflplotpy_demo.py`](examples/nflplotpy_demo.py)**: Complete feature demonstrations  
+- **[`table_examples.py`](examples/table_examples.py)**: NFL table styling examples
+- **[`quick_test.py`](examples/quick_test.py)**: Quick functionality verification
+
+➤ **[View Full Examples Documentation](examples/README.md)** for detailed tutorials and customization guides.
+
+## ✨ Core Features
 
 ### 🎨 **Team Colors & Branding**
 ```python
@@ -162,14 +189,7 @@ pip install nflplotpy[all]
 pip install nflplotpy[dev]
 ```
 
-## Examples
-
-See `nflplotpy/examples/` for comprehensive usage examples:
-- `real_data_examples.py`: Complete 2024 NFL analysis using real play-by-play data
-- `nflplotpy_demo.py`: Feature demonstrations and tutorials
-- `quick_test.py`: Simple functionality test
-
-## Package Structure
+## 🏗️ Package Structure
 
 ```
 nflplotpy/

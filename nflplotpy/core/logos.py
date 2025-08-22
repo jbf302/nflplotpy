@@ -74,16 +74,12 @@ TEAM_ABBREVIATION_MAP: Dict[str, str] = {
     'KAN': 'KC',
     'LA': 'LAR',
     'LVR': 'LV',
-    'NE': 'NE',
-    'NO': 'NO',
     'NOR': 'NO',
     'OAK': 'LV',
     'SD': 'LAC',
     'SDG': 'LAC',
-    'SF': 'SF',
     'SFO': 'SF',
     'STL': 'LAR',
-    'TB': 'TB',
     'WSH': 'WAS'
 }
 
@@ -95,20 +91,20 @@ def normalize_team_abbreviation(team: str) -> str:
         team: Team abbreviation
         
     Returns:
-        Normalized team abbreviation
+        Normalized team abbreviation (canonical form)
         
     Raises:
         ValueError: If team abbreviation is not valid
     """
     team = team.upper()
     
-    # Return direct match first
-    if team in NFL_TEAM_LOGOS:
-        return team
-        
-    # Check if it needs mapping
+    # Check if it needs mapping to canonical form first
     if team in TEAM_ABBREVIATION_MAP:
         return TEAM_ABBREVIATION_MAP[team]
+    
+    # Return direct match if already canonical
+    if team in NFL_TEAM_LOGOS:
+        return team
         
     raise ValueError(f"Invalid team abbreviation: {team}")
 
@@ -130,12 +126,16 @@ def get_team_logo_url(team: str) -> str:
 
 
 def get_available_teams() -> list[str]:
-    """Get list of all available team abbreviations.
+    """Get list of all available team abbreviations (canonical forms only).
     
     Returns:
-        List of team abbreviations
+        List of canonical team abbreviations (32 NFL teams)
     """
-    return sorted(list(set(NFL_TEAM_LOGOS.keys()) - {'AFC', 'NFC', 'NFL'}))
+    # Get all teams except conference/league logos and alternate abbreviations
+    all_teams = set(NFL_TEAM_LOGOS.keys()) - {'AFC', 'NFC', 'NFL'}
+    # Remove alternate abbreviations (those that map to canonical forms)
+    canonical_teams = all_teams - set(TEAM_ABBREVIATION_MAP.keys())
+    return sorted(list(canonical_teams))
 
 
 def get_conference_teams(conference: str) -> list[str]:

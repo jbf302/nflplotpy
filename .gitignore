@@ -76,3 +76,7 @@ tmp/
 # NFL asset cache
 nfl_cache/
 logos_cache/
+
+# Test files
+test_plot*.png
+**/test_plot*.png
