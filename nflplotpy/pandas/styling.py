@@ -211,8 +211,14 @@ class NFLTableStyler:
 
                 # Create HTML img tag
                 if replace_text:
-                    return f'<img src="data:image/png;base64,{img_str}" height="{logo_height}px" alt="{team_abbr}">'
-                return f'{team_abbr} <img src="data:image/png;base64,{img_str}" height="{logo_height}px" alt="{team_abbr}">'
+                    return (
+                        f'<img src="data:image/png;base64,{img_str}" '
+                        f'height="{logo_height}px" alt="{team_abbr}">'
+                    )
+                return (
+                    f'{team_abbr} <img src="data:image/png;base64,{img_str}" '
+                    f'height="{logo_height}px" alt="{team_abbr}">'
+                )
 
             except Exception as e:
                 warnings.warn(f"Could not load logo for {team_abbr}: {e}", stacklevel=2)

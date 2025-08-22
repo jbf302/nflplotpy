@@ -100,11 +100,13 @@ def add_nfl_logo(
         team: Team abbreviation
         x: X position
         y: Y position
-        width: Logo width (as fraction of axes width) - ignored if target_width_pixels is set
+        width: Logo width (as fraction of axes width) - ignored if
+            target_width_pixels is set
         height: Logo height (if None, maintains aspect ratio)
         alpha: Transparency level (0-1)
         zorder: Drawing order
-        target_width_pixels: Target width in pixels for consistent sizing (overrides width)
+        target_width_pixels: Target width in pixels for consistent sizing
+            (overrides width parameter)
         **kwargs: Additional arguments passed to AnnotationBbox
 
     Returns:
@@ -177,7 +179,8 @@ def add_nfl_logos(
         x: X positions (must be same length as teams)
         y: Y positions (must be same length as teams)
         width: Logo width for all logos - ignored if target_width_pixels is set
-        target_width_pixels: Target width in pixels for consistent sizing across all logos
+        target_width_pixels: Target width in pixels for consistent sizing
+            across all logos
         **kwargs: Additional arguments passed to add_nfl_logo
 
     Returns:

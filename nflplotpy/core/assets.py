@@ -12,7 +12,10 @@ from PIL import Image
 
 
 class NFLAssetManager:
-    """Manages downloading and caching of NFL assets including logos, headshots, and wordmarks."""
+    """Manages downloading and caching of NFL assets.
+    
+    Includes logos, headshots, and wordmarks.
+    """
 
     def __init__(self, cache_dir: str | None = None):
         """Initialize the asset manager.
@@ -54,7 +57,10 @@ class NFLAssetManager:
         try:
             # Set proper headers to comply with Wikipedia User-Agent policy
             headers = {
-                "User-Agent": "nflplotpy/0.1.0 (https://github.com/nflverse/nfl_data_py; nflplotpy@nflverse.com) Python/3.x",
+                "User-Agent": (
+                    "nflplotpy/0.1.0 (https://github.com/nflverse/nfl_data_py; "
+                    "nflplotpy@nflverse.com) Python/3.x"
+                ),
                 "Accept": "image/*,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.5",
                 "Accept-Encoding": "gzip, deflate",

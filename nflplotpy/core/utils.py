@@ -60,7 +60,8 @@ def team_tiers(
     Equivalent to nflplotR's nfl_team_tiers().
 
     Args:
-        method: Method for creating tiers ('draft_order', 'conference', 'division', 'random')
+        method: Method for creating tiers ('draft_order', 'conference', 'division',
+            'random')
         season: Season year for data-based methods (not used in basic implementation)
 
     Returns:
@@ -402,7 +403,7 @@ def nfl_sitrep() -> None:
                 response = requests.head(url, timeout=5)
                 if response.status_code < 400:
                     working_urls += 1
-            except:
+            except Exception:
                 pass
 
     except Exception:
