@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import warnings
 from typing import Any
 
@@ -409,7 +408,7 @@ def nfl_sitrep() -> None:
 
     # Team data availability
     teams = get_available_teams()
-    print(f"\nTeam Data:")
+    print("\nTeam Data:")
     print(f"  Available teams: {len(teams)}")
     print(f"  Sample teams: {teams[:5]}")
 
@@ -499,7 +498,7 @@ def nfl_sitrep() -> None:
         )
 
     try:
-        import nfl_data_py  # noqa: F401
+        import nfl_data_py
     except ImportError:
         recommendations.append(
             "Install nfl_data_py for NFL data: pip install nfl_data_py"
