@@ -287,6 +287,7 @@ def save_preview_grid(
         except (OSError, PermissionError):
             # On Windows, file might still be in use - try alternative cleanup
             import time
+
             time.sleep(0.1)  # Brief delay
             try:
                 os.unlink(temp_file.name)
