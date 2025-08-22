@@ -51,7 +51,8 @@ class test_logo_downloading(TestCase):
     def test_logo_caching_works(self):
         """Test that logo caching works properly."""
         # Use temporary directory for test cache
-        with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir = tempfile.mkdtemp()
+        try:
             manager = NFLAssetManager(cache_dir=temp_dir)
             
             # First download should create cache
@@ -65,6 +66,23 @@ class test_logo_downloading(TestCase):
             self.assertIsInstance(logo1, Image.Image)
             self.assertIsInstance(logo2, Image.Image)
             self.assertEqual(cache_info_1['logos_count'], cache_info_2['logos_count'])
+            
+            # Close images to release file handles on Windows
+            logo1.close()
+            logo2.close()
+            
+        finally:
+            # Windows-compatible cleanup
+            try:
+                shutil.rmtree(temp_dir)
+            except (OSError, PermissionError):
+                # On Windows, wait briefly and try again
+                import time
+                time.sleep(0.1)
+                try:
+                    shutil.rmtree(temp_dir)
+                except (OSError, PermissionError):
+                    pass  # Cleanup failed but test completed successfully
 
 
 class test_matplotlib_integration(TestCase):
@@ -205,7 +223,8 @@ class test_asset_manager(TestCase):
     
     def test_asset_manager_cache_info(self):
         """Test that asset manager provides cache information."""
-        with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir = tempfile.mkdtemp()
+        try:
             manager = NFLAssetManager(cache_dir=temp_dir)
             cache_info = manager.get_cache_info()
             
@@ -213,16 +232,26 @@ class test_asset_manager(TestCase):
             self.assertIn('cache_dir', cache_info)
             self.assertIn('logos_count', cache_info)
             self.assertIn('total_size_bytes', cache_info)
+            
+        finally:
+            try:
+                shutil.rmtree(temp_dir)
+            except (OSError, PermissionError):
+                pass
     
     def test_asset_manager_clear_cache(self):
         """Test cache clearing functionality."""
-        with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir = tempfile.mkdtemp()
+        try:
             manager = NFLAssetManager(cache_dir=temp_dir)
             
             # Download a logo to create cache
             try:
-                manager.get_logo('KC')
+                logo = manager.get_logo('KC')
                 cache_info_before = manager.get_cache_info()
+                
+                # Close image to release file handle
+                logo.close()
                 
                 # Clear cache
                 manager.clear_cache('logos')
@@ -233,4 +262,10 @@ class test_asset_manager(TestCase):
                 
             except Exception:
                 # If logo download fails, that's okay for this test
+                pass
+                
+        finally:
+            try:
+                shutil.rmtree(temp_dir)
+            except (OSError, PermissionError):
                 pass
