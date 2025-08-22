@@ -1,8 +1,8 @@
 """Team data and metadata for nflplotpy."""
 
-from .team_info import load_team_data, get_team_mapping
+from .team_info import get_team_mapping, load_team_data
 
 __all__ = [
-    "load_team_data",
     "get_team_mapping",
+    "load_team_data",
 ]

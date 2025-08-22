@@ -1,13 +1,13 @@
 """Core nflplotpy functionality."""
 
+from .colors import NFL_TEAM_COLORS, NFLColorPalette
 from .logos import NFLAssetManager
-from .colors import NFLColorPalette, NFL_TEAM_COLORS
 from .utils import team_factor, team_tiers
 
 __all__ = [
+    "NFL_TEAM_COLORS",
     "NFLAssetManager",
     "NFLColorPalette",
-    "NFL_TEAM_COLORS", 
     "team_factor",
     "team_tiers",
 ]

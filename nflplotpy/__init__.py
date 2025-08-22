@@ -9,87 +9,93 @@ __version__ = "0.1.0"
 __author__ = "nflverse"
 
 # Core functionality
+from .core.colors import NFL_TEAM_COLORS, NFLColorPalette, get_team_colors
 from .core.logos import NFLAssetManager, get_available_teams
-from .core.colors import NFLColorPalette, NFL_TEAM_COLORS, get_team_colors
-from .core.utils import (
-    team_factor, team_tiers, get_nflverse_info, validate_teams,
-    nfl_sitrep, clear_all_cache, validate_player_ids
-)
+
+# High-level plotting functions
+from .core.plotting import plot_player_comparison, plot_team_stats
 
 # Enhanced URL management
 from .core.urls import (
-    get_team_wordmark_url, get_player_headshot_urls, 
-    discover_player_id, AssetURLManager
+    AssetURLManager,
+    discover_player_id,
+    get_player_headshot_urls,
+    get_team_wordmark_url,
+)
+from .core.utils import (
+    clear_all_cache,
+    get_nflverse_info,
+    nfl_sitrep,
+    team_factor,
+    team_tiers,
+    validate_player_ids,
+    validate_teams,
 )
 
 # Matplotlib integration
-from .matplotlib.artists import add_nfl_logo, add_nfl_headshot, add_nfl_wordmark, add_median_lines, add_mean_lines
-from .matplotlib.scales import nfl_color_scale, apply_nfl_theme
-from .matplotlib.preview import nfl_preview, preview_with_dimensions, ggpreview
-from .matplotlib.elements import (
-    set_xlabel_with_logos, set_ylabel_with_logos, set_title_with_logos,
-    add_logo_watermark, create_team_comparison_axes
+from .matplotlib.artists import (
+    add_mean_lines,
+    add_median_lines,
+    add_nfl_headshot,
+    add_nfl_logo,
+    add_nfl_wordmark,
 )
+from .matplotlib.elements import (
+    add_logo_watermark,
+    create_team_comparison_axes,
+    set_title_with_logos,
+    set_xlabel_with_logos,
+    set_ylabel_with_logos,
+)
+from .matplotlib.preview import ggpreview, nfl_preview, preview_with_dimensions
+from .matplotlib.scales import apply_nfl_theme, nfl_color_scale
 
 # Pandas integration
 from .pandas.styling import (
-    style_with_logos, style_with_headshots, style_with_wordmarks,
-    create_nfl_table, NFLTableStyler
+    NFLTableStyler,
+    create_nfl_table,
+    style_with_headshots,
+    style_with_logos,
+    style_with_wordmarks,
 )
 
-# High-level plotting functions
-from .core.plotting import plot_team_stats, plot_player_comparison
-
 __all__ = [
-    # Core classes
-    "NFLAssetManager",
-    "NFLColorPalette", 
     "NFL_TEAM_COLORS",
     "AssetURLManager",
+    "NFLAssetManager",
+    "NFLColorPalette",
     "NFLTableStyler",
-    
-    # Utility functions
-    "team_factor",
-    "team_tiers",
-    "get_available_teams",
-    "get_team_colors",
-    "get_nflverse_info",
-    "validate_teams",
-    "nfl_sitrep",
-    "clear_all_cache",
-    "validate_player_ids",
-    
-    # URL management
-    "get_team_wordmark_url",
-    "get_player_headshot_urls",
-    "discover_player_id",
-    
-    # Matplotlib functions
-    "add_nfl_logo",
-    "add_nfl_headshot", 
-    "add_nfl_wordmark",
-    "add_median_lines",
+    "add_logo_watermark",
     "add_mean_lines",
-    "nfl_color_scale",
+    "add_median_lines",
+    "add_nfl_headshot",
+    "add_nfl_logo",
+    "add_nfl_wordmark",
     "apply_nfl_theme",
-    
-    # Matplotlib preview and elements
-    "nfl_preview",
-    "preview_with_dimensions", 
+    "clear_all_cache",
+    "create_nfl_table",
+    "create_team_comparison_axes",
+    "discover_player_id",
+    "get_available_teams",
+    "get_nflverse_info",
+    "get_player_headshot_urls",
+    "get_team_colors",
+    "get_team_wordmark_url",
     "ggpreview",
+    "nfl_color_scale",
+    "nfl_preview",
+    "nfl_sitrep",
+    "plot_player_comparison",
+    "plot_team_stats",
+    "preview_with_dimensions",
+    "set_title_with_logos",
     "set_xlabel_with_logos",
     "set_ylabel_with_logos",
-    "set_title_with_logos",
-    "add_logo_watermark",
-    "create_team_comparison_axes",
-    
-    # Pandas integration
-    "style_with_logos",
     "style_with_headshots",
+    "style_with_logos",
     "style_with_wordmarks",
-    "create_nfl_table",
-    
-    # High-level plotting
-    "plot_team_stats",
-    "plot_player_comparison",
+    "team_factor",
+    "team_tiers",
+    "validate_player_ids",
+    "validate_teams",
 ]

@@ -1,14 +1,17 @@
 """Pandas integration for NFL table styling."""
 
 from .styling import (
-    style_with_logos, style_with_headshots, style_with_wordmarks,
-    create_nfl_table, NFLTableStyler
+    NFLTableStyler,
+    create_nfl_table,
+    style_with_headshots,
+    style_with_logos,
+    style_with_wordmarks,
 )
 
 __all__ = [
-    "style_with_logos",
-    "style_with_headshots", 
-    "style_with_wordmarks",
+    "NFLTableStyler",
     "create_nfl_table",
-    "NFLTableStyler"
+    "style_with_headshots",
+    "style_with_logos",
+    "style_with_wordmarks",
 ]

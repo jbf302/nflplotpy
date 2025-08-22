@@ -1,8 +1,8 @@
 """Seaborn integration for nflplotpy."""
 
-from .styles import set_nfl_style, create_nfl_palette
+from .styles import create_nfl_palette, set_nfl_style
 
 __all__ = [
-    "set_nfl_style",
     "create_nfl_palette",
+    "set_nfl_style",
 ]

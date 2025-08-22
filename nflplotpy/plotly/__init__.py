@@ -1,11 +1,11 @@
 """Plotly integration for nflplotpy."""
 
-from .traces import add_nfl_logo_trace, add_nfl_headshot_trace
-from .layouts import create_nfl_layout, apply_nfl_styling
+from .layouts import apply_nfl_styling, create_nfl_layout
+from .traces import add_nfl_headshot_trace, add_nfl_logo_trace
 
 __all__ = [
-    "add_nfl_logo_trace",
     "add_nfl_headshot_trace",
-    "create_nfl_layout", 
+    "add_nfl_logo_trace",
     "apply_nfl_styling",
+    "create_nfl_layout",
 ]
