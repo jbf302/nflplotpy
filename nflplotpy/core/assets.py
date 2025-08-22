@@ -119,7 +119,7 @@ class NFLAssetManager:
             msg = f"Invalid team abbreviation: {team}"
             raise ValueError(msg)
 
-        cache_filename = f"{team}_logo.{format}"
+        cache_filename = f"{team}_logo.{image_format}"
         cache_path = self.logos_dir / cache_filename
 
         # Check if cached and not forcing refresh

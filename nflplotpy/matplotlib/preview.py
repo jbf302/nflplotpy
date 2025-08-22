@@ -281,8 +281,17 @@ def save_preview_grid(
         ax.axis("off")
         ax.set_title(f"Figure {i + 1}", fontsize=10)
 
-        # Clean up temporary file
-        os.unlink(temp_file.name)
+        # Clean up temporary file - use try/except for Windows compatibility
+        try:
+            os.unlink(temp_file.name)
+        except (OSError, PermissionError):
+            # On Windows, file might still be in use - try alternative cleanup
+            import time
+            time.sleep(0.1)  # Brief delay
+            try:
+                os.unlink(temp_file.name)
+            except (OSError, PermissionError):
+                pass  # File cleanup failed, but this is not critical
 
     # Save combined figure
     save_kwargs = {"dpi": dpi, "bbox_inches": "tight", "facecolor": "white"}

@@ -76,9 +76,17 @@ class TestPandasStyling:
         
         # Test saving to temporary file
         with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as f:
-            table.save_html(f.name)
-            assert os.path.exists(f.name)
-            os.unlink(f.name)
+            temp_filename = f.name
+        
+        # Close file handle before using it
+        table.save_html(temp_filename)
+        assert os.path.exists(temp_filename)
+        
+        # Clean up with Windows-compatible error handling
+        try:
+            os.unlink(temp_filename)
+        except (OSError, PermissionError):
+            pass  # File cleanup failed, but this is not critical for tests
     
     def test_style_with_headshots_placeholder(self):
         """Test headshot styling (placeholder implementation)."""
@@ -118,34 +126,44 @@ class TestMatplotlibPreview:
     def test_nfl_preview_basic(self):
         """Test basic preview functionality."""
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
-            preview_path = nfl_preview(
-                self.fig,
-                width=8,
-                height=6,
-                show_in_notebook=False,
-                save_path=f.name
-            )
-            
-            assert preview_path == f.name
-            assert os.path.exists(preview_path)
-            
-            # Check file size is reasonable (not empty)
-            assert os.path.getsize(preview_path) > 1000
-            
+            temp_filename = f.name
+        
+        preview_path = nfl_preview(
+            self.fig,
+            width=8,
+            height=6,
+            show_in_notebook=False,
+            save_path=temp_filename
+        )
+        
+        assert preview_path == temp_filename
+        assert os.path.exists(preview_path)
+        
+        # Check file size is reasonable (not empty)
+        assert os.path.getsize(preview_path) > 1000
+        
+        try:
             os.unlink(preview_path)
+        except (OSError, PermissionError):
+            pass  # File cleanup failed, but this is not critical for tests
     
     def test_preview_with_dimensions(self):
         """Test preview with dimension presets."""
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
-            preview_path = preview_with_dimensions(
-                self.fig,
-                dimensions='standard',
-                show_in_notebook=False,
-                save_path=f.name
-            )
-            
-            assert os.path.exists(preview_path)
+            temp_filename = f.name
+        
+        preview_path = preview_with_dimensions(
+            self.fig,
+            dimensions='standard',
+            show_in_notebook=False,
+            save_path=temp_filename
+        )
+        
+        assert os.path.exists(preview_path)
+        try:
             os.unlink(preview_path)
+        except (OSError, PermissionError):
+            pass  # File cleanup failed, but this is not critical for tests
     
     def test_preview_comparison(self):
         """Test preview comparison functionality."""
@@ -169,14 +187,19 @@ class TestMatplotlibPreview:
         
         for preset in presets:
             with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
-                path = preview_with_dimensions(
-                    self.fig,
-                    dimensions=preset,
-                    show_in_notebook=False,
-                    save_path=f.name
-                )
-                assert os.path.exists(path)
+                temp_filename = f.name
+            
+            path = preview_with_dimensions(
+                self.fig,
+                dimensions=preset,
+                show_in_notebook=False,
+                save_path=temp_filename
+            )
+            assert os.path.exists(path)
+            try:
                 os.unlink(path)
+            except (OSError, PermissionError):
+                pass  # File cleanup failed, but this is not critical for tests
 
 
 class TestMatplotlibElements:
@@ -345,13 +368,18 @@ class TestIntegrationFeatures:
         
         # 4. Preview the plot
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
-            preview_path = nfl_preview(
-                fig, 
-                show_in_notebook=False, 
-                save_path=f.name
-            )
-            assert os.path.exists(preview_path)
+            temp_filename = f.name
+        
+        preview_path = nfl_preview(
+            fig, 
+            show_in_notebook=False, 
+            save_path=temp_filename
+        )
+        assert os.path.exists(preview_path)
+        try:
             os.unlink(preview_path)
+        except (OSError, PermissionError):
+            pass  # File cleanup failed, but this is not critical for tests
         
         plt.close(fig)
     
