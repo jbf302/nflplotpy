@@ -80,7 +80,7 @@ class NFLDataPlayerManager:
         return None
     
     def name_to_ids(self, player_name: str, team: Optional[str] = None) -> dict[str, Optional[str]]:
-        """Find player IDs by name.
+        """Find player IDs by name using fuzzy matching.
         
         Args:
             player_name: Player's full name
@@ -139,6 +139,66 @@ class NFLDataPlayerManager:
                 
         except Exception as e:
             warnings.warn(f"Error searching for player {player_name}: {e}", stacklevel=2)
+            
+        result = {"gsis_id": None, "espn_id": None, "name": None}
+        self._cache[cache_key] = result
+        return result
+    
+    def get_player_info_by_id(self, player_id: str, id_type: str = 'gsis') -> dict[str, Optional[str]]:
+        """Get comprehensive player info by ID.
+        
+        Args:
+            player_id: Player identifier
+            id_type: Type of ID ('gsis', 'espn', 'nfl')
+            
+        Returns:
+            Dictionary with all available player information
+        """
+        if not self._load_data():
+            return {"gsis_id": None, "espn_id": None, "name": None}
+            
+        cache_key = f"id:{id_type}:{player_id}"
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+            
+        try:
+            import pandas as pd
+            
+            # Map ID type to column name
+            column_map = {
+                'gsis': 'gsis_id', 
+                'espn': 'espn_id',
+                'nfl': 'nfl_id'
+            }
+            
+            if id_type not in column_map:
+                raise ValueError(f"Unsupported ID type: {id_type}")
+                
+            column_name = column_map[id_type]
+            
+            # Handle different ID formats
+            search_id = player_id
+            if id_type == 'espn':
+                # Ensure ESPN ID is numeric
+                search_id = float(player_id)
+            
+            # Find player by ID
+            matches = self._id_data[self._id_data[column_name] == search_id]
+                
+            if not matches.empty:
+                player_row = matches.iloc[0]
+                result = {
+                    'gsis_id': str(player_row['gsis_id']) if pd.notna(player_row['gsis_id']) else None,
+                    'espn_id': str(int(player_row['espn_id'])) if pd.notna(player_row['espn_id']) else None,
+                    'name': str(player_row['name']) if pd.notna(player_row['name']) else None,
+                    'team': str(player_row['team']) if pd.notna(player_row.get('team')) else None,
+                    'position': str(player_row['position']) if pd.notna(player_row.get('position')) else None
+                }
+                self._cache[cache_key] = result
+                return result
+                
+        except Exception as e:
+            warnings.warn(f"Error looking up player by {id_type} ID {player_id}: {e}", stacklevel=2)
             
         result = {"gsis_id": None, "espn_id": None, "name": None}
         self._cache[cache_key] = result

@@ -12,8 +12,8 @@ import warnings
 from .logos import NFL_TEAM_LOGOS
 from .nfl_data_integration import get_nfl_data_manager
 
-# Team wordmark URLs following nflverse patterns
-# These URLs point to high-quality team wordmarks
+# Team wordmark URLs with palette mode fixes
+# All teams use nflverse wordmarks with improved image processing to fix color issues
 NFL_TEAM_WORDMARKS: dict[str, str] = {
     "ARI": "https://github.com/nflverse/nflfastR-data/raw/master/wordmarks/ARI.png",
     "ATL": "https://github.com/nflverse/nflfastR-data/raw/master/wordmarks/ATL.png",
@@ -418,6 +418,29 @@ def discover_player_id(
     """
     manager = get_url_manager()
     return manager.player_id_manager.discover_player_by_name(player_name, team)
+
+
+def get_player_info_by_id(
+    player_id: str, id_type: str = 'gsis'
+) -> dict[str, str | None]:
+    """Get comprehensive player information by ID.
+
+    Args:
+        player_id: Player identifier
+        id_type: Type of ID ('gsis', 'espn', 'nfl')
+
+    Returns:
+        Dictionary with player information including name, team, position
+
+    Example:
+        >>> info = get_player_info_by_id("00-0033873", "gsis")
+        >>> print(info['name'])  # "Patrick Mahomes"
+        >>> print(info['espn_id'])  # "3139477"
+    """
+    # Get the NFLDataPlayerManager directly
+    from .nfl_data_integration import get_nfl_data_manager
+    nfl_manager = get_nfl_data_manager()
+    return nfl_manager.get_player_info_by_id(player_id, id_type)
 
 
 def validate_all_urls() -> dict[str, list[str]]:

@@ -455,6 +455,16 @@ def add_team_wordmark(
 
         wordmark_img = Image.open(BytesIO(response.content))
 
+        # Fix palette mode issues while preserving transparency
+        if wordmark_img.mode == 'P':
+            # Palette mode can cause color mapping issues - convert to RGBA to preserve transparency
+            wordmark_img = wordmark_img.convert('RGBA')
+        elif wordmark_img.mode in ['RGBA', 'LA', 'PA']:
+            # Already has alpha channel - just ensure RGBA mode
+            wordmark_img = wordmark_img.convert('RGBA')
+        else:
+            # RGB or other modes - convert to RGBA for consistent transparency
+            wordmark_img = wordmark_img.convert('RGBA')
 
         # Create OffsetImage
         imagebox = offsetbox.OffsetImage(
@@ -569,6 +579,9 @@ def set_xlabel_with_wordmarks(
     positions: list[float] | None = None,
     wordmark_size: float = 0.06,
     text_labels: bool = False,
+    add_background: bool = True,
+    background_alpha: float = 0.8,
+    spacing_factor: float = 1.2,
     **kwargs,
 ):
     """Replace x-axis labels with team wordmarks.
@@ -579,12 +592,17 @@ def set_xlabel_with_wordmarks(
         positions: X positions for wordmarks. If None, uses evenly spaced positions.
         wordmark_size: Size of wordmarks
         text_labels: Whether to keep text labels alongside wordmarks
+        add_background: Whether to add white background behind wordmarks for clarity
+        background_alpha: Transparency of background (0=transparent, 1=opaque)
+        spacing_factor: Multiplier for spacing between wordmarks
         **kwargs: Additional arguments for wordmark placement
     """
     teams = validate_teams(teams)
 
     if positions is None:
-        positions = np.linspace(0, len(teams) - 1, len(teams))
+        # Add spacing between positions to prevent overlap
+        total_width = len(teams) - 1
+        positions = np.linspace(0, total_width, len(teams))
 
     if len(positions) != len(teams):
         msg = "Length of positions must match length of teams"
@@ -597,23 +615,48 @@ def set_xlabel_with_wordmarks(
     # Set x-axis ticks at positions
     ax.set_xticks(positions)
 
-    # Add team wordmarks below x-axis
-    y_offset = -0.15  # Position below axis
+    # Calculate improved y-offset based on plot size
+    ylim_range = ax.get_ylim()[1] - ax.get_ylim()[0]
+    y_offset = -ylim_range * 0.08  # Dynamic offset based on y-range
+    
+    # Adjust wordmark size based on number of teams to prevent overlap
+    adjusted_size = wordmark_size * min(1.0, 12.0 / len(teams))
 
     for team, pos in zip(teams, positions):
         try:
-            # Add wordmark
+            # Add background circle/rectangle for better visibility
+            if add_background:
+                from matplotlib.patches import FancyBboxPatch
+                # Calculate wordmark bounds for background
+                bg_width = adjusted_size * ax.get_figure().get_figwidth() * 0.8
+                bg_height = bg_width * 0.6  # Typical wordmark aspect ratio
+                
+                background = FancyBboxPatch(
+                    (pos - bg_width/2, y_offset - bg_height/2),
+                    bg_width, bg_height,
+                    boxstyle="round,pad=0.01",
+                    facecolor='white',
+                    edgecolor='lightgray',
+                    alpha=background_alpha,
+                    transform=ax.transData,
+                    zorder=0
+                )
+                ax.add_patch(background)
+            
+            # Add wordmark with improved positioning
             add_team_wordmark(
                 ax,
                 team,
                 pos,
                 y_offset,
-                width=wordmark_size,
+                width=adjusted_size,
                 transform=ax.transData,
                 **kwargs,
             )
         except Exception as e:
             warnings.warn(f"Could not add wordmark for {team}: {e}", stacklevel=2)
 
-    # Adjust bottom margin to accommodate wordmarks
-    plt.subplots_adjust(bottom=0.2)
+    # Dynamically adjust bottom margin based on content
+    current_bottom = plt.rcParams.get('figure.subplot.bottom', 0.1)
+    new_bottom = max(current_bottom, 0.25 if len(teams) > 16 else 0.2)
+    plt.subplots_adjust(bottom=new_bottom)
