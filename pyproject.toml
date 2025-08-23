@@ -41,7 +41,8 @@ keywords = ["nfl", "football", "visualization", "plotting", "matplotlib", "plotl
 [project.optional-dependencies]
 plotly = ["plotly>=5.0.0"]
 seaborn = ["seaborn>=0.11.0"]
-all = ["plotly>=5.0.0", "seaborn>=0.11.0"]
+nfldata = ["nfl_data_py>=0.3.0"]
+all = ["plotly>=5.0.0", "seaborn>=0.11.0", "nfl_data_py>=0.3.0"]
 dev = [
     "pytest>=6.0",
     "pytest-cov",

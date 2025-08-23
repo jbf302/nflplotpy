@@ -1,4 +1,4 @@
-"""Enhanced URL management for NFL assets.
+"""Enhanced URL management for NFL assets using nfl_data_py integration.
 
 Provides comprehensive URL mapping and management for team logos,
 player headshots, wordmarks, and other NFL assets.
@@ -10,6 +10,7 @@ import re
 import warnings
 
 from .logos import NFL_TEAM_LOGOS
+from .nfl_data_integration import get_nfl_data_manager
 
 # Team wordmark URLs following nflverse patterns
 # These URLs point to high-quality team wordmarks
@@ -50,14 +51,13 @@ NFL_TEAM_WORDMARKS: dict[str, str] = {
 
 
 class PlayerIDManager:
-    """Manages mapping between different player ID systems."""
+    """Manages mapping between different player ID systems using nfl_data_py."""
 
     def __init__(self):
         """Initialize player ID manager."""
-        self._gsis_to_espn_cache: dict[str, str] = {}
-        self._player_name_cache: dict[str, dict[str, str]] = {}
-
-        # Known mappings for testing (these would come from nflreadr in production)
+        self._nfl_data_manager = get_nfl_data_manager()
+        
+        # Fallback test mappings if nfl_data_py is not available
         self._test_mappings = {
             "00-0033873": "3139477",  # Patrick Mahomes
             "00-0034796": "3918298",  # Josh Allen
@@ -76,20 +76,15 @@ class PlayerIDManager:
         Returns:
             ESPN player ID if found, None otherwise
         """
-        # Check cache first
-        if gsis_id in self._gsis_to_espn_cache:
-            return self._gsis_to_espn_cache[gsis_id]
-
-        # Check test mappings
-        if gsis_id in self._test_mappings:
-            espn_id = self._test_mappings[gsis_id]
-            self._gsis_to_espn_cache[gsis_id] = espn_id
+        # Try nfl_data_py first
+        espn_id = self._nfl_data_manager.gsis_to_espn(gsis_id)
+        if espn_id:
             return espn_id
 
-        # In production, this would query nflreadr's player ID mapping
-        warnings.warn(
-            f"GSIS to ESPN ID mapping not available for: {gsis_id}", stacklevel=2
-        )
+        # Fallback to test mappings
+        if gsis_id in self._test_mappings:
+            return self._test_mappings[gsis_id]
+
         return None
 
     def discover_player_by_name(
@@ -104,10 +99,13 @@ class PlayerIDManager:
         Returns:
             Dictionary with available player IDs
         """
-        # Normalize name for lookup
-        normalized_name = player_name.lower().strip()
+        # Try nfl_data_py first
+        result = self._nfl_data_manager.name_to_ids(player_name, team)
+        if result and (result.get("gsis_id") or result.get("espn_id")):
+            return result
 
-        # Test data for development
+        # Fallback to test data
+        normalized_name = player_name.lower().strip()
         test_players = {
             "patrick mahomes": {"gsis_id": "00-0033873", "espn_id": "3139477"},
             "josh allen": {"gsis_id": "00-0034796", "espn_id": "3918298"},
