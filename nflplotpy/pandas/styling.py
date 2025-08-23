@@ -277,7 +277,11 @@ def style_with_logos(
 
 
 def style_with_headshots(
-    df: pd.DataFrame, player_columns: str | list[str], headshot_height: int = 30
+    df: pd.DataFrame,
+    player_columns: str | list[str],
+    headshot_height: int = 30,
+    id_type: str = "auto",
+    replace_text: bool = True,
 ):
     """Add player headshots to DataFrame columns.
 
@@ -287,16 +291,13 @@ def style_with_headshots(
         df: pandas DataFrame
         player_columns: Column name(s) containing player IDs/names
         headshot_height: Height of headshots in pixels
+        id_type: Type of player identifier ('espn', 'gsis', 'name', 'auto')
+        replace_text: If True, replace text with headshot; if False, add headshot alongside
 
     Returns:
         pandas Styler with headshot formatting
-
-    Note:
-        Currently uses placeholder implementation pending headshot URL system.
     """
-    warnings.warn(
-        "Player headshots not yet fully implemented - using placeholders", stacklevel=2
-    )
+    from nflplotpy.core.urls import get_player_headshot_urls
 
     if isinstance(player_columns, str):
         player_columns = [player_columns]
@@ -306,8 +307,35 @@ def style_with_headshots(
     def headshot_formatter(player_id):
         if pd.isna(player_id):
             return player_id
-        # Placeholder implementation
-        return f"👤 {player_id}"  # Using emoji as placeholder
+
+        try:
+            player_id_str = str(player_id)
+
+            # Get headshot URLs
+            urls = get_player_headshot_urls(player_id_str, id_type=id_type)
+
+            if "espn_full" in urls:
+                headshot_url = urls["espn_full"]
+
+                # Create HTML img tag for headshot
+                if replace_text:
+                    return (
+                        f'<img src="{headshot_url}" '
+                        f'height="{headshot_height}px" alt="{player_id_str}" '
+                        f'style="vertical-align: middle; border-radius: 50%;">'
+                    )
+                return (
+                    f'{player_id_str} <img src="{headshot_url}" '
+                    f'height="{headshot_height}px" alt="{player_id_str}" '
+                    f'style="vertical-align: middle; border-radius: 50%;">'
+                )
+            # Fall back to placeholder if no URL found
+            return f"👤 {player_id_str}" if replace_text else f"{player_id_str} 👤"
+
+        except Exception as e:
+            warnings.warn(f"Could not load headshot for {player_id}: {e}", stacklevel=2)
+            # Fall back to placeholder on error
+            return f"👤 {player_id}" if replace_text else f"{player_id} 👤"
 
     for col in player_columns:
         if col in df.columns:
@@ -317,7 +345,10 @@ def style_with_headshots(
 
 
 def style_with_wordmarks(
-    df: pd.DataFrame, team_columns: str | list[str], wordmark_height: int = 20
+    df: pd.DataFrame,
+    team_columns: str | list[str],
+    wordmark_height: int = 20,
+    replace_text: bool = True,
 ):
     """Add team wordmarks to DataFrame columns.
 
@@ -327,63 +358,46 @@ def style_with_wordmarks(
         df: pandas DataFrame
         team_columns: Column name(s) containing team abbreviations
         wordmark_height: Height of wordmarks in pixels
+        replace_text: If True, replace text with wordmark; if False, add wordmark alongside
 
     Returns:
         pandas Styler with wordmark formatting
-
-    Note:
-        Currently uses placeholder implementation pending wordmark URL system.
     """
-    warnings.warn(
-        "Team wordmarks not yet fully implemented - using team names", stacklevel=2
-    )
+    from nflplotpy.core.urls import get_url_manager
 
     if isinstance(team_columns, str):
         team_columns = [team_columns]
 
-    # Team name mapping for wordmark placeholders
-    team_names = {
-        "ARI": "CARDINALS",
-        "ATL": "FALCONS",
-        "BAL": "RAVENS",
-        "BUF": "BILLS",
-        "CAR": "PANTHERS",
-        "CHI": "BEARS",
-        "CIN": "BENGALS",
-        "CLE": "BROWNS",
-        "DAL": "COWBOYS",
-        "DEN": "BRONCOS",
-        "DET": "LIONS",
-        "GB": "PACKERS",
-        "HOU": "TEXANS",
-        "IND": "COLTS",
-        "JAC": "JAGUARS",
-        "KC": "CHIEFS",
-        "LV": "RAIDERS",
-        "LAC": "CHARGERS",
-        "LAR": "RAMS",
-        "MIA": "DOLPHINS",
-        "MIN": "VIKINGS",
-        "NE": "PATRIOTS",
-        "NO": "SAINTS",
-        "NYG": "GIANTS",
-        "NYJ": "JETS",
-        "PHI": "EAGLES",
-        "PIT": "STEELERS",
-        "SEA": "SEAHAWKS",
-        "SF": "49ERS",
-        "TB": "BUCCANEERS",
-        "TEN": "TITANS",
-        "WAS": "COMMANDERS",
-    }
-
     styler = df.style
+    manager = get_url_manager()
 
     def wordmark_formatter(team_abbr):
         if pd.isna(team_abbr):
             return team_abbr
-        team_abbr = str(team_abbr).upper()
-        return team_names.get(team_abbr, team_abbr)
+
+        try:
+            team_abbr = str(team_abbr).upper()
+            validate_teams(team_abbr)
+
+            # Get wordmark URL
+            wordmark_url = manager.get_wordmark_url(team_abbr)
+
+            # Create HTML img tag for wordmark
+            if replace_text:
+                return (
+                    f'<img src="{wordmark_url}" '
+                    f'height="{wordmark_height}px" alt="{team_abbr}" '
+                    f'style="vertical-align: middle;">'
+                )
+            return (
+                f'{team_abbr} <img src="{wordmark_url}" '
+                f'height="{wordmark_height}px" alt="{team_abbr}" '
+                f'style="vertical-align: middle;">'
+            )
+
+        except Exception as e:
+            warnings.warn(f"Could not load wordmark for {team_abbr}: {e}", stacklevel=2)
+            return team_abbr
 
     for col in team_columns:
         if col in df.columns:

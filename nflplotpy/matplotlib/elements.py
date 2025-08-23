@@ -1,7 +1,8 @@
-"""Theme elements for integrating logos into plot components.
+"""Theme elements for integrating logos, wordmarks, and headshots into plot components.
 
 Provides functions to replace text elements (axis labels, titles, etc.)
-with NFL team logos, similar to R's element_nfl_logo() functionality.
+with NFL team logos, wordmarks, and player headshots, similar to R's
+element_nfl_logo() functionality.
 """
 
 from __future__ import annotations
@@ -10,8 +11,10 @@ import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 
 from nflplotpy.core.colors import get_team_colors
+from nflplotpy.core.urls import get_player_headshot_urls, get_url_manager
 from nflplotpy.core.utils import validate_teams
 
 from .artists import add_nfl_logo
@@ -412,3 +415,205 @@ def create_division_subplot_grid(
         fig.suptitle(title, fontsize=16, fontweight="bold", y=0.98)
 
     return axes
+
+
+def add_team_wordmark(
+    ax: plt.Axes,
+    team: str,
+    x: float,
+    y: float,
+    width: float = 0.1,
+    transform: plt.Transform | None = None,
+    **kwargs,
+):
+    """Add NFL team wordmark to plot.
+
+    Args:
+        ax: matplotlib Axes
+        team: Team abbreviation
+        x: X position
+        y: Y position
+        width: Width of wordmark
+        transform: Coordinate transform to use
+        **kwargs: Additional arguments for OffsetImage
+    """
+    from io import BytesIO
+
+    import requests
+    from matplotlib import offsetbox
+
+    team = validate_teams(team)[0]
+
+    try:
+        # Get wordmark URL
+        manager = get_url_manager()
+        wordmark_url = manager.get_wordmark_url(team)
+
+        # Download and load image
+        response = requests.get(wordmark_url, timeout=10)
+        response.raise_for_status()
+
+        wordmark_img = Image.open(BytesIO(response.content))
+
+
+        # Create OffsetImage
+        imagebox = offsetbox.OffsetImage(
+            wordmark_img, zoom=width * ax.figure.dpi / 100, **kwargs
+        )
+
+        # Create AnnotationBbox
+        ab = offsetbox.AnnotationBbox(
+            imagebox, (x, y), frameon=False, transform=transform or ax.transAxes
+        )
+
+        # Add to axes
+        ax.add_artist(ab)
+        return ab
+
+    except Exception as e:
+        warnings.warn(f"Could not add wordmark for {team}: {e}", stacklevel=2)
+        return None
+
+
+def add_player_headshot(
+    ax: plt.Axes,
+    player_id: str | int,
+    x: float,
+    y: float,
+    width: float = 0.08,
+    id_type: str = "auto",
+    transform: plt.Transform | None = None,
+    circular: bool = True,
+    **kwargs,
+):
+    """Add NFL player headshot to plot.
+
+    Args:
+        ax: matplotlib Axes
+        player_id: Player identifier (ESPN ID, GSIS ID, or name)
+        x: X position
+        y: Y position
+        width: Width of headshot
+        id_type: Type of player identifier ('espn', 'gsis', 'name', 'auto')
+        transform: Coordinate transform to use
+        circular: Whether to crop headshot to circular shape
+        **kwargs: Additional arguments for OffsetImage
+    """
+    from io import BytesIO
+
+    import requests
+    from matplotlib import offsetbox
+
+    try:
+        # Get headshot URLs
+        urls = get_player_headshot_urls(player_id, id_type=id_type)
+
+        if "espn_full" not in urls:
+            warnings.warn(
+                f"No headshot URL found for player: {player_id}", stacklevel=2
+            )
+            return None
+
+        headshot_url = urls["espn_full"]
+
+        # Download and load image
+        response = requests.get(headshot_url, timeout=10)
+        response.raise_for_status()
+
+        headshot_img = Image.open(BytesIO(response.content))
+
+        # Make circular if requested
+        if circular:
+            # Convert to RGBA
+            if headshot_img.mode != "RGBA":
+                headshot_img = headshot_img.convert("RGBA")
+
+            # Create circular mask
+            size = min(headshot_img.size)
+            mask = Image.new("L", (size, size), 0)
+            from PIL import ImageDraw
+
+            draw = ImageDraw.Draw(mask)
+            draw.ellipse((0, 0, size, size), fill=255)
+
+            # Crop to square and apply mask
+            left = (headshot_img.width - size) // 2
+            top = (headshot_img.height - size) // 2
+            headshot_img = headshot_img.crop((left, top, left + size, top + size))
+
+            # Apply circular mask
+            headshot_img.putalpha(mask)
+
+        # Create OffsetImage
+        imagebox = offsetbox.OffsetImage(
+            headshot_img, zoom=width * ax.figure.dpi / 100, **kwargs
+        )
+
+        # Create AnnotationBbox
+        ab = offsetbox.AnnotationBbox(
+            imagebox, (x, y), frameon=False, transform=transform or ax.transAxes
+        )
+
+        # Add to axes
+        ax.add_artist(ab)
+        return ab
+
+    except Exception as e:
+        warnings.warn(f"Could not add headshot for {player_id}: {e}", stacklevel=2)
+        return None
+
+
+def set_xlabel_with_wordmarks(
+    ax: plt.Axes,
+    teams: list[str],
+    positions: list[float] | None = None,
+    wordmark_size: float = 0.06,
+    text_labels: bool = False,
+    **kwargs,
+):
+    """Replace x-axis labels with team wordmarks.
+
+    Args:
+        ax: matplotlib Axes
+        teams: List of team abbreviations
+        positions: X positions for wordmarks. If None, uses evenly spaced positions.
+        wordmark_size: Size of wordmarks
+        text_labels: Whether to keep text labels alongside wordmarks
+        **kwargs: Additional arguments for wordmark placement
+    """
+    teams = validate_teams(teams)
+
+    if positions is None:
+        positions = np.linspace(0, len(teams) - 1, len(teams))
+
+    if len(positions) != len(teams):
+        msg = "Length of positions must match length of teams"
+        raise ValueError(msg)
+
+    # Clear existing x-axis labels
+    if not text_labels:
+        ax.set_xticklabels([])
+
+    # Set x-axis ticks at positions
+    ax.set_xticks(positions)
+
+    # Add team wordmarks below x-axis
+    y_offset = -0.15  # Position below axis
+
+    for team, pos in zip(teams, positions):
+        try:
+            # Add wordmark
+            add_team_wordmark(
+                ax,
+                team,
+                pos,
+                y_offset,
+                width=wordmark_size,
+                transform=ax.transData,
+                **kwargs,
+            )
+        except Exception as e:
+            warnings.warn(f"Could not add wordmark for {team}: {e}", stacklevel=2)
+
+    # Adjust bottom margin to accommodate wordmarks
+    plt.subplots_adjust(bottom=0.2)

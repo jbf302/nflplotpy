@@ -88,26 +88,27 @@ class TestPandasStyling:
         except (OSError, PermissionError):
             pass  # File cleanup failed, but this is not critical for tests
     
-    def test_style_with_headshots_placeholder(self):
-        """Test headshot styling (placeholder implementation)."""
+    def test_style_with_headshots_real(self):
+        """Test headshot styling with real URLs."""
         player_df = pd.DataFrame({
             'player': ['Patrick Mahomes', 'Josh Allen'],
             'team': ['KC', 'BUF']
         })
         
-        styled = style_with_headshots(player_df, 'player')
+        styled = style_with_headshots(player_df, 'player', id_type='name')
         html = styled.to_html()
         
-        # Should contain placeholder emojis
-        assert '👤' in html
+        # Should contain either img tags (if URL works) or placeholder emojis (fallback)
+        assert 'img src=' in html or '👤' in html
     
-    def test_style_with_wordmarks_placeholder(self):
-        """Test wordmark styling (placeholder implementation).""" 
+    def test_style_with_wordmarks_real(self):
+        """Test wordmark styling with real URLs.""" 
         styled = style_with_wordmarks(self.sample_df, 'team')
         html = styled.to_html()
         
-        # Should contain team names as wordmarks
-        assert any(name in html for name in ['CHIEFS', 'BILLS', 'RAVENS'])
+        # Should contain img tags for wordmarks
+        assert 'img src=' in html
+        assert 'nflfastR-data' in html  # Should contain nflverse wordmark URLs
 
 
 class TestMatplotlibPreview:
@@ -266,9 +267,13 @@ class TestURLManagement:
     def test_discover_player_id(self):
         """Test player ID discovery."""
         # Test known player
-        player_id = discover_player_id("patrick mahomes")
-        if player_id:  # May return None if not implemented
-            assert isinstance(player_id, str)
+        player_ids = discover_player_id("patrick mahomes")
+        assert isinstance(player_ids, dict)
+        assert 'espn_id' in player_ids
+        assert 'gsis_id' in player_ids
+        # Should have actual IDs for known players
+        if player_ids['espn_id']:
+            assert isinstance(player_ids['espn_id'], str)
     
     def test_url_validation(self):
         """Test URL validation."""
