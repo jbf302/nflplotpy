@@ -22,7 +22,7 @@ import pandas as pd
 import numpy as np
 try:
     import nfl_data_py as nfl
-    NFL_DATA_AVAILABLE = False  # Use sample data for now
+    NFL_DATA_AVAILABLE = True  # Try real data first
 except ImportError:
     NFL_DATA_AVAILABLE = False
     print("nfl_data_py not available. Using sample data instead.")
@@ -50,12 +50,41 @@ def load_qb_data():
             ],
             'games': [17, 17, 12, 16, 17, 4, 17, 11, 15, 10, 17, 16],
             'total_offensive_epa': [145.2, 138.7, 89.3, 112.8, 98.4, -8.2, 67.3, 45.1, 78.9, 34.2, 89.7, 78.3],
-            'comp_yac_epa': [87.6, 82.1, 45.2, 68.9, 78.3, -12.4, 34.7, 28.9, 51.2, 18.7, 56.8, 49.2]
+            'yac_yards': [1247, 1156, 623, 981, 1034, 198, 734, 456, 891, 387, 956, 743],     # YAC yards
+            'total_passing_yards': [4321, 4169, 2635, 3602, 4067, 849, 2897, 2106, 3701, 1573, 3631, 2976]  # Total passing yards
         })
         
-        # Calculate per-game averages and YAC EPA percentage
+        # Calculate per-game averages and YAC yards percentage
         sample_data['epa_per_game'] = sample_data['total_offensive_epa'] / sample_data['games']
-        sample_data['yac_epa_percentage'] = (sample_data['comp_yac_epa'] / sample_data['total_offensive_epa'] * 100).round(1)
+        
+        # Handle YAC yards percentage calculation
+        def calculate_yac_percentage(row):
+            if row['total_passing_yards'] <= 0:  # Avoid division by zero/negative
+                return 0.0
+            else:
+                # % of passing yards that come from YAC (should be 0-100%)
+                return round((row['yac_yards'] / row['total_passing_yards'] * 100), 1)
+        
+        sample_data['yac_yards_percentage'] = sample_data.apply(calculate_yac_percentage, axis=1)
+        
+        # Add known ESPN IDs for accurate headshot matching
+        espn_id_mapping = {
+            'Patrick Mahomes': '3139477',
+            'Josh Allen': '3918298', 
+            'Lamar Jackson': '3916387',
+            'Dak Prescott': '2577417',
+            'Tua Tagovailoa': '4241479',
+            'Aaron Rodgers': '8439',
+            'Russell Wilson': '14881',
+            'Kyler Murray': '4038941',
+            'Jalen Hurts': '4241464',
+            'Joe Burrow': '4035004',
+            'Justin Herbert': '4035538',
+            'Geno Smith': '14880'
+        }
+        
+        sample_data['espn_id'] = sample_data['player_display_name'].map(espn_id_mapping)
+        sample_data['validated_name'] = sample_data['player_display_name']
         
         return sample_data
     
@@ -75,11 +104,12 @@ def load_qb_data():
         # Calculate QB stats (keep passer_player_id for accurate lookups)
         qb_stats = qb_plays.groupby(['passer_player_id', 'passer_player_name', 'posteam']).agg({
             'epa': ['sum', 'count'],
-            'comp_yac_epa': 'sum',
+            'yards_after_catch': 'sum',  # Total YAC yards
+            'passing_yards': 'sum',      # Total passing yards
             'week': 'nunique'
         }).round(2)
         
-        qb_stats.columns = ['total_offensive_epa', 'attempts', 'comp_yac_epa', 'games']
+        qb_stats.columns = ['total_offensive_epa', 'attempts', 'yac_yards', 'total_passing_yards', 'games']
         qb_stats = qb_stats.reset_index()
         
         # Filter for QBs with meaningful sample size
@@ -90,7 +120,16 @@ def load_qb_data():
         
         # Calculate per-game averages and YAC EPA percentage
         qb_stats['epa_per_game'] = qb_stats['total_offensive_epa'] / qb_stats['games']
-        qb_stats['yac_epa_percentage'] = (qb_stats['comp_yac_epa'] / qb_stats['total_offensive_epa'] * 100).round(1)
+        
+        # Handle YAC yards percentage calculation
+        def calculate_yac_percentage(row):
+            if row['total_passing_yards'] <= 0:  # Avoid division by zero/negative
+                return 0.0
+            else:
+                # % of passing yards that come from YAC (should be 0-100%)
+                return round((row['yac_yards'] / row['total_passing_yards'] * 100), 1)
+        
+        qb_stats['yac_yards_percentage'] = qb_stats.apply(calculate_yac_percentage, axis=1)
         
         # Keep both player ID and name for accurate headshot lookup
         qb_stats = qb_stats.rename(columns={
@@ -136,22 +175,32 @@ def create_qb_headshot_plot(qb_data):
     # Calculate per-game metrics if not already present
     if 'epa_per_game' not in qb_data.columns:
         qb_data['epa_per_game'] = qb_data['total_offensive_epa'] / qb_data['games']
-        qb_data['yac_epa_percentage'] = (qb_data['comp_yac_epa'] / qb_data['total_offensive_epa'] * 100).round(1)
+        
+        # Handle YAC yards percentage calculation
+        def calculate_yac_percentage(row):
+            if row['total_passing_yards'] <= 0:  # Avoid division by zero/negative
+                return 0.0
+            else:
+                # % of passing yards that come from YAC (should be 0-100%)
+                return round((row['yac_yards'] / row['total_passing_yards'] * 100), 1)
+        
+        qb_data['yac_yards_percentage'] = qb_data.apply(calculate_yac_percentage, axis=1)
     
     # Create scatter plot points (invisible - headshots will replace them)
     x_vals = qb_data['epa_per_game'].values
-    y_vals = qb_data['yac_epa_percentage'].values
+    y_vals = qb_data['yac_yards_percentage'].values
+    
     
     # Add invisible scatter points for reference
     ax.scatter(x_vals, y_vals, alpha=0.0, s=100)
     
     # Add player headshots
     print("Adding player headshots to plot...")
-    headshot_size = 0.08  # Size of headshots
+    headshot_size = 0.06  # Size of headshots (made smaller)
     
     for idx, row in qb_data.iterrows():
         x = row['epa_per_game'] 
-        y = row['yac_epa_percentage']
+        y = row['yac_yards_percentage']
         player_name = row.get('validated_name', row['player_display_name'])
         
         try:
@@ -163,8 +212,9 @@ def create_qb_headshot_plot(qb_data):
                     x, y,
                     width=headshot_size,
                     id_type='espn',  # Use ESPN ID for accurate matching
-                    circular=True,
-                    transform=ax.transData
+                    circular=False,  # Remove black circular background
+                    transform=ax.transData,
+                    alpha=0.9  # Add transparency for overlapping
                 )
             else:
                 # Fall back to name-based lookup
@@ -174,8 +224,9 @@ def create_qb_headshot_plot(qb_data):
                     x, y,
                     width=headshot_size,
                     id_type='name',
-                    circular=True,
-                    transform=ax.transData
+                    circular=False,  # Remove black circular background
+                    transform=ax.transData,
+                    alpha=0.9  # Add transparency for overlapping
                 )
             
             # Add subtle text label below headshot
@@ -200,14 +251,16 @@ def create_qb_headshot_plot(qb_data):
                        textcoords='offset points', fontsize=9)
     
     # Add reference lines at medians
-    add_median_lines(ax, x_vals, axis='both', 
+    add_median_lines(ax, x_vals, axis='x', 
+                    color='red', linestyle='--', alpha=0.5, linewidth=1)
+    add_median_lines(ax, y_vals, axis='y', 
                     color='red', linestyle='--', alpha=0.5, linewidth=1)
     
     # Styling
     ax.set_xlabel('Total Offensive EPA per Game', fontsize=14, fontweight='bold')
-    ax.set_ylabel('% of EPA that is YAC EPA', fontsize=14, fontweight='bold')
+    ax.set_ylabel('% of Passing Yards from YAC', fontsize=14, fontweight='bold')
     ax.set_title('2024 NFL Quarterback Performance Analysis\n'
-                'Total EPA per Game vs. YAC EPA Percentage', 
+                'Total EPA per Game vs. % of Passing Yards from YAC', 
                 fontsize=16, fontweight='bold', pad=20)
     
     # Apply NFL theme
@@ -217,9 +270,14 @@ def create_qb_headshot_plot(qb_data):
     ax.grid(True, alpha=0.3, linestyle='-', linewidth=0.5)
     ax.set_axisbelow(True)
     
+    # Set Y-axis limits to focus on actual data range
+    y_min = min(y_vals) - 2
+    y_max = max(y_vals) + 2
+    ax.set_ylim(y_min, y_max)
+    
     # Add explanatory text
-    textstr = ('Top Right: Elite efficiency QBs (high EPA, high completion/YAC)\n'
-              'Bottom Right: Volume passers (high EPA, lower completion/YAC)\n'
+    textstr = ('Top Right: High EPA QBs with receiver-dependent offense\n'
+              'Bottom Right: High EPA QBs with precise passing (less YAC)\n'
               'Red lines indicate median values')
     
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
@@ -241,10 +299,10 @@ def add_quadrant_analysis(ax, x_vals, y_vals):
     
     # Quadrant labels
     quadrants = [
-        ("Elite Efficiency", 0.75, 0.9, 'green'),
-        ("High Volume", 0.75, 0.1, 'blue'), 
-        ("Developing", 0.25, 0.1, 'orange'),
-        ("Balanced", 0.25, 0.9, 'purple')
+        ("High EPA + High YAC", 0.75, 0.9, 'green'),
+        ("High EPA + Precise Passing", 0.75, 0.1, 'blue'), 
+        ("Lower EPA + Precise Passing", 0.25, 0.1, 'orange'),
+        ("Lower EPA + High YAC", 0.25, 0.9, 'purple')
     ]
     
     for label, x_pos, y_pos, color in quadrants:
@@ -278,7 +336,7 @@ def main():
     
     # Add quadrant analysis
     if 'epa_per_game' in qb_data.columns:
-        add_quadrant_analysis(ax, qb_data['epa_per_game'], qb_data['yac_epa_percentage'])
+        add_quadrant_analysis(ax, qb_data['epa_per_game'], qb_data['yac_yards_percentage'])
     
     # Save the plot
     output_file = 'examples/2024_qb_headshots_analysis.png'
@@ -290,11 +348,13 @@ def main():
     plt.show()
     
     print("\n📊 Analysis Notes:")
-    print("• Player headshots show individual QB performance")
-    print("• X-axis: Total offensive EPA efficiency per game")
-    print("• Y-axis: How much EPA comes from completions + YAC") 
+    print("• Player headshots show individual QB performance") 
+    print("• X-axis: Team's offensive EPA per game when QB starts (productivity)")
+    print("• Y-axis: % of passing yards gained after the catch (0-100%)")
     print("• Red dashed lines show median values for reference")
-    print("• QBs in top-right quadrant are most efficient overall")
+    print("• Higher YAC% = More yards gained by receivers after catching the ball")
+    print("• Lower YAC% = More yards gained through precise passing to open receivers")
+    print("• Both styles can be effective - shows different offensive approaches")
 
 
 if __name__ == "__main__":

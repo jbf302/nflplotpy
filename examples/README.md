@@ -23,7 +23,61 @@ Welcome to the nflplotpy examples directory! This collection of scripts demonstr
 
 ## 📊 Available Examples
 
-### 1. `nflplotpy_demo.py` - Complete Feature Showcase
+### 🆕 **NEW: Advanced Headshots & Wordmarks Examples**
+
+### 1. `qb_headshots_analysis.py` - 2024 QB Performance with Player Headshots
+**What it demonstrates:**
+- 👤 **Player Headshots**: Real ESPN player photos in plots
+- 📊 **Advanced Analytics**: EPA vs Completion + YAC EPA analysis
+- 🔍 **Player ID System**: Auto-detection of ESPN/GSIS IDs and names
+- 📈 **Real Data**: 2024 NFL play-by-play data from nfl_data_py
+- 🎯 **Interactive Elements**: Hover-style annotations and quadrant analysis
+
+**Key Features:**
+- X-axis: Total average offensive EPA per game
+- Y-axis: Completion + YAC EPA (how much EPA comes from after-the-catch)
+- Player headshots displayed at each quarterback's performance point
+- Median reference lines for league context
+- Top performers highlighted in elite efficiency quadrant
+
+**Output File:** `2024_qb_headshots_analysis.png`
+
+### 2. `team_wordmarks_matplotlib.py` - Team Performance with Wordmarks
+**What it demonstrates:**
+- 🏷️ **Team Wordmarks**: Official nflverse wordmark images on x-axis
+- 📊 **Performance Metrics**: 2024 Net Points per Win analysis  
+- 🎨 **Team Colors**: Bars colored with official team colors
+- 📈 **Statistical Context**: Median lines and performance annotations
+- 🏆 **Rankings**: Automatic sorting by performance
+
+**Key Features:**
+- Team wordmarks replace traditional x-axis text labels
+- Net Points per Win shows scoring efficiency relative to wins
+- Top/bottom performer annotations with team highlights
+- Professional NFL styling with reference lines
+
+**Output File:** `2024_team_wordmarks_matplotlib.png`
+
+### 3. `interactive_team_wordmarks.py` - Multi-Year Interactive Analysis
+**What it demonstrates:**
+- 🎮 **Interactive Plotly**: Multi-year slider and animation controls
+- 📅 **Time Series**: 2019-2024 team performance data
+- 🔄 **Animation**: Play button to animate through seasons
+- 💡 **Rich Tooltips**: Detailed hover information with team stats
+- 🎨 **Team Colors**: Dynamic coloring based on official team palettes
+
+**Key Features:**
+- Year slider to explore different NFL seasons
+- Animated transitions between years
+- Comprehensive hover details (wins, losses, points, net points)
+- Teams sorted by performance within each season
+- Export to interactive HTML file
+
+**Output File:** `interactive_team_wordmarks.html`
+
+---
+
+### 4. `nflplotpy_demo.py` - Complete Feature Showcase
 
 **What it demonstrates:**
 - 🎨 **Team Colors**: Official NFL color palettes
