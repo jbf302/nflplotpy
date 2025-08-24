@@ -456,15 +456,15 @@ def add_team_wordmark(
         wordmark_img = Image.open(BytesIO(response.content))
 
         # Fix palette mode issues while preserving transparency
-        if wordmark_img.mode == 'P':
+        if wordmark_img.mode == "P":
             # Palette mode can cause color mapping issues - convert to RGBA to preserve transparency
-            wordmark_img = wordmark_img.convert('RGBA')
-        elif wordmark_img.mode in ['RGBA', 'LA', 'PA']:
+            wordmark_img = wordmark_img.convert("RGBA")
+        elif wordmark_img.mode in ["RGBA", "LA", "PA"]:
             # Already has alpha channel - just ensure RGBA mode
-            wordmark_img = wordmark_img.convert('RGBA')
+            wordmark_img = wordmark_img.convert("RGBA")
         else:
             # RGB or other modes - convert to RGBA for consistent transparency
-            wordmark_img = wordmark_img.convert('RGBA')
+            wordmark_img = wordmark_img.convert("RGBA")
 
         # Create OffsetImage
         imagebox = offsetbox.OffsetImage(
@@ -618,7 +618,7 @@ def set_xlabel_with_wordmarks(
     # Calculate improved y-offset based on plot size
     ylim_range = ax.get_ylim()[1] - ax.get_ylim()[0]
     y_offset = -ylim_range * 0.08  # Dynamic offset based on y-range
-    
+
     # Adjust wordmark size based on number of teams to prevent overlap
     adjusted_size = wordmark_size * min(1.0, 12.0 / len(teams))
 
@@ -627,22 +627,24 @@ def set_xlabel_with_wordmarks(
             # Add background circle/rectangle for better visibility
             if add_background:
                 from matplotlib.patches import FancyBboxPatch
+
                 # Calculate wordmark bounds for background
                 bg_width = adjusted_size * ax.get_figure().get_figwidth() * 0.8
                 bg_height = bg_width * 0.6  # Typical wordmark aspect ratio
-                
+
                 background = FancyBboxPatch(
-                    (pos - bg_width/2, y_offset - bg_height/2),
-                    bg_width, bg_height,
+                    (pos - bg_width / 2, y_offset - bg_height / 2),
+                    bg_width,
+                    bg_height,
                     boxstyle="round,pad=0.01",
-                    facecolor='white',
-                    edgecolor='lightgray',
+                    facecolor="white",
+                    edgecolor="lightgray",
                     alpha=background_alpha,
                     transform=ax.transData,
-                    zorder=0
+                    zorder=0,
                 )
                 ax.add_patch(background)
-            
+
             # Add wordmark with improved positioning
             add_team_wordmark(
                 ax,
@@ -657,6 +659,402 @@ def set_xlabel_with_wordmarks(
             warnings.warn(f"Could not add wordmark for {team}: {e}", stacklevel=2)
 
     # Dynamically adjust bottom margin based on content
-    current_bottom = plt.rcParams.get('figure.subplot.bottom', 0.1)
+    current_bottom = plt.rcParams.get("figure.subplot.bottom", 0.1)
     new_bottom = max(current_bottom, 0.25 if len(teams) > 16 else 0.2)
     plt.subplots_adjust(bottom=new_bottom)
+
+
+def replace_legend_text_with_logos(
+    ax: plt.Axes,
+    team_mapping: dict[str, str],
+    logo_size: float = 0.04,
+    **kwargs,
+):
+    """Replace legend text labels with team logos.
+
+    Args:
+        ax: matplotlib Axes
+        team_mapping: Dictionary mapping legend labels to team abbreviations
+        logo_size: Size of logos in legend
+        **kwargs: Additional arguments for logo placement
+    """
+    legend = ax.get_legend()
+    if legend is None:
+        warnings.warn("No legend found on axes", stacklevel=2)
+        return
+
+    # Get legend information
+    legend_texts = [text.get_text() for text in legend.get_texts()]
+
+    # Replace matching text with logos
+    for i, text_label in enumerate(legend_texts):
+        if text_label in team_mapping:
+            team = team_mapping[text_label]
+            try:
+                # Get legend text position
+                text_obj = legend.get_texts()[i]
+
+                # Hide original text
+                text_obj.set_visible(False)
+
+                # Get position in figure coordinates
+                bbox = text_obj.get_window_extent()
+                fig = ax.get_figure()
+
+                # Convert to figure coordinates
+                x_fig = bbox.x0 / fig.get_figwidth()
+                y_fig = bbox.y0 / fig.get_figheight()
+
+                # Add logo at text position
+                add_nfl_logo(
+                    ax,
+                    team,
+                    x_fig,
+                    y_fig,
+                    width=logo_size,
+                    transform=fig.transFigure,
+                    **kwargs,
+                )
+            except Exception as e:
+                warnings.warn(
+                    f"Could not replace legend text with logo for {team}: {e}",
+                    stacklevel=2,
+                )
+
+
+def set_facet_labels_with_logos(
+    fig: plt.Figure,
+    axes_grid: list[plt.Axes] | np.ndarray,
+    team_mapping: dict[str, str],
+    logo_size: float = 0.06,
+    position: str = "top",
+    **kwargs,
+):
+    """Replace facet/subplot labels with team logos.
+
+    Args:
+        fig: matplotlib Figure
+        axes_grid: Grid of axes (from subplots)
+        team_mapping: Dictionary mapping subplot titles to team abbreviations
+        logo_size: Size of logos
+        position: Where to place logos ('top', 'right', 'left', 'bottom')
+        **kwargs: Additional arguments for logo placement
+    """
+    # Flatten axes grid if needed
+    if isinstance(axes_grid, np.ndarray):
+        axes_list = axes_grid.flatten()
+    else:
+        axes_list = axes_grid
+
+    for ax in axes_list:
+        title_text = ax.get_title()
+
+        if title_text in team_mapping:
+            team = team_mapping[title_text]
+
+            try:
+                # Hide original title
+                ax.set_title("")
+
+                # Position logo based on location
+                if position == "top":
+                    logo_x, logo_y = 0.5, 1.1
+                elif position == "right":
+                    logo_x, logo_y = 1.1, 0.5
+                elif position == "left":
+                    logo_x, logo_y = -0.1, 0.5
+                elif position == "bottom":
+                    logo_x, logo_y = 0.5, -0.1
+                else:
+                    logo_x, logo_y = 0.5, 1.1  # Default to top
+
+                # Add team logo
+                add_nfl_logo(
+                    ax,
+                    team,
+                    logo_x,
+                    logo_y,
+                    width=logo_size,
+                    transform=ax.transAxes,
+                    **kwargs,
+                )
+            except Exception as e:
+                warnings.warn(
+                    f"Could not replace facet label with logo for {team}: {e}",
+                    stacklevel=2,
+                )
+
+
+def add_logo_to_colorbar(
+    fig: plt.Figure,
+    colorbar,
+    team: str,
+    position: str = "top",
+    logo_size: float = 0.05,
+    **kwargs,
+):
+    """Add team logo to colorbar.
+
+    Args:
+        fig: matplotlib Figure
+        colorbar: Colorbar object
+        team: Team abbreviation
+        position: Where to place logo relative to colorbar
+        logo_size: Size of logo
+        **kwargs: Additional arguments for logo placement
+    """
+    try:
+        # Get colorbar axes position
+        cbar_ax = colorbar.ax
+        cbar_bbox = cbar_ax.get_position()
+
+        # Calculate logo position based on colorbar location
+        if position == "top":
+            logo_x = cbar_bbox.x0 + cbar_bbox.width / 2
+            logo_y = cbar_bbox.y1 + 0.05
+        elif position == "bottom":
+            logo_x = cbar_bbox.x0 + cbar_bbox.width / 2
+            logo_y = cbar_bbox.y0 - 0.05
+        elif position == "left":
+            logo_x = cbar_bbox.x0 - 0.05
+            logo_y = cbar_bbox.y0 + cbar_bbox.height / 2
+        elif position == "right":
+            logo_x = cbar_bbox.x1 + 0.05
+            logo_y = cbar_bbox.y0 + cbar_bbox.height / 2
+        else:
+            logo_x = cbar_bbox.x1 + 0.05
+            logo_y = cbar_bbox.y0 + cbar_bbox.height / 2
+
+        # Add logo in figure coordinates
+        add_nfl_logo(
+            cbar_ax,
+            team,
+            logo_x,
+            logo_y,
+            width=logo_size,
+            transform=fig.transFigure,
+            **kwargs,
+        )
+
+    except Exception as e:
+        warnings.warn(f"Could not add logo to colorbar: {e}", stacklevel=2)
+
+
+def create_logo_legend(
+    ax: plt.Axes,
+    teams: list[str],
+    labels: list[str] | None = None,
+    ncols: int = 1,
+    logo_size: float = 0.04,
+    spacing: float = 0.02,
+    title: str | None = None,
+    loc: str = "best",
+    **kwargs,
+) -> plt.Artist:
+    """Create a legend using team logos instead of standard legend elements.
+
+    Args:
+        ax: matplotlib Axes
+        teams: List of team abbreviations
+        labels: Custom labels for each team (if None, uses team abbreviations)
+        ncols: Number of columns in legend
+        logo_size: Size of team logos
+        spacing: Spacing between legend items
+        title: Legend title
+        loc: Legend location
+        **kwargs: Additional arguments
+
+    Returns:
+        Legend-like artist (actually a collection of logos and text)
+    """
+    teams = validate_teams(teams)
+
+    if labels is None:
+        labels = teams
+
+    if len(labels) != len(teams):
+        msg = f"Length of labels ({len(labels)}) must match teams ({len(teams)})"
+        raise ValueError(msg)
+
+    try:
+        # Calculate legend position
+        if loc == "best":
+            # Simple heuristic for best position
+            loc = "upper right"
+
+        # Position mapping
+        positions = {
+            "upper right": (0.95, 0.95),
+            "upper left": (0.05, 0.95),
+            "lower right": (0.95, 0.05),
+            "lower left": (0.05, 0.05),
+            "center": (0.5, 0.5),
+        }
+
+        base_x, base_y = positions.get(loc, (0.95, 0.95))
+
+        # Calculate grid layout
+        n_teams = len(teams)
+        nrows = int(np.ceil(n_teams / ncols))
+
+        # Add background rectangle (optional)
+        from matplotlib.patches import FancyBboxPatch
+
+        legend_width = ncols * (logo_size + spacing) + spacing
+        legend_height = nrows * (logo_size + spacing) + spacing
+
+        if title:
+            legend_height += 0.03  # Extra space for title
+
+        # Adjust position based on location
+        if "right" in loc:
+            rect_x = base_x - legend_width
+        else:
+            rect_x = base_x
+
+        if "upper" in loc:
+            rect_y = base_y - legend_height
+        else:
+            rect_y = base_y
+
+        # Add background
+        bg_rect = FancyBboxPatch(
+            (rect_x, rect_y),
+            legend_width,
+            legend_height,
+            boxstyle="round,pad=0.01",
+            facecolor="white",
+            edgecolor="gray",
+            alpha=0.9,
+            transform=ax.transAxes,
+            zorder=1000,
+        )
+        ax.add_patch(bg_rect)
+
+        # Add title if provided
+        if title:
+            title_x = rect_x + legend_width / 2
+            title_y = rect_y + legend_height - 0.02
+            ax.text(
+                title_x,
+                title_y,
+                title,
+                transform=ax.transAxes,
+                ha="center",
+                va="top",
+                fontweight="bold",
+                zorder=1001,
+            )
+
+        # Add logos and labels
+        for i, (team, label) in enumerate(zip(teams, labels)):
+            row = i // ncols
+            col = i % ncols
+
+            # Calculate position
+            logo_x = rect_x + spacing + col * (logo_size + spacing) + logo_size / 2
+            logo_y = (
+                rect_y
+                + legend_height
+                - spacing
+                - row * (logo_size + spacing)
+                - logo_size / 2
+            )
+
+            if title:
+                logo_y -= 0.03
+
+            # Add logo
+            add_nfl_logo(
+                ax,
+                team,
+                logo_x,
+                logo_y,
+                width=logo_size,
+                transform=ax.transAxes,
+                zorder=1001,
+                **kwargs,
+            )
+
+            # Add text label next to logo
+            text_x = logo_x + logo_size / 2 + 0.01
+            ax.text(
+                text_x,
+                logo_y,
+                label,
+                transform=ax.transAxes,
+                ha="left",
+                va="center",
+                fontsize=8,
+                zorder=1001,
+            )
+
+        return bg_rect
+
+    except Exception as e:
+        warnings.warn(f"Could not create logo legend: {e}", stacklevel=2)
+        return None
+
+
+def replace_tick_labels_with_images(
+    ax: plt.Axes,
+    axis: str,
+    image_mapping: dict[str, str],
+    image_size: float = 0.04,
+    **kwargs,
+):
+    """Replace tick labels with images from URLs or paths.
+
+    Generic version of set_xlabel_with_logos that works with any images.
+
+    Args:
+        ax: matplotlib Axes
+        axis: Which axis to modify ('x' or 'y')
+        image_mapping: Dictionary mapping tick labels to image URLs/paths
+        image_size: Size of images
+        **kwargs: Additional arguments for image placement
+    """
+    from .artists import add_image_from_path
+
+    if axis == "x":
+        tick_labels = [label.get_text() for label in ax.get_xticklabels()]
+        tick_positions = ax.get_xticks()
+        ax.set_xticklabels([])  # Clear original labels
+
+        y_offset = -0.1  # Below x-axis
+
+        for pos, label in zip(tick_positions, tick_labels):
+            if label in image_mapping:
+                image_path = image_mapping[label]
+                add_image_from_path(
+                    ax,
+                    image_path,
+                    pos,
+                    y_offset,
+                    width=image_size,
+                    transform=ax.transData,
+                    **kwargs,
+                )
+
+    elif axis == "y":
+        tick_labels = [label.get_text() for label in ax.get_yticklabels()]
+        tick_positions = ax.get_yticks()
+        ax.set_yticklabels([])  # Clear original labels
+
+        x_offset = -0.1  # Left of y-axis
+
+        for pos, label in zip(tick_positions, tick_labels):
+            if label in image_mapping:
+                image_path = image_mapping[label]
+                add_image_from_path(
+                    ax,
+                    image_path,
+                    x_offset,
+                    pos,
+                    width=image_size,
+                    transform=ax.transData,
+                    **kwargs,
+                )
+    else:
+        msg = f"Invalid axis: {axis}. Must be 'x' or 'y'"
+        raise ValueError(msg)
