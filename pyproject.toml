@@ -1,6 +1,6 @@
 [project]
 name = "nflplotpy"
-version = "0.1.0"
+version = "0.9.0"
 requires-python = ">=3.8"
 description = "Python NFL visualization package - nflplotR equivalent for matplotlib, plotly, and seaborn"
 urls = { homepage = "https://github.com/joelfeinberg/nflplotpy"}
