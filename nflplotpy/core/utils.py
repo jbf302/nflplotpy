@@ -297,6 +297,124 @@ def clean_team_abbreviations(
     return df
 
 
+def get_team_conference(team: str) -> str:
+    """Get the conference for a given team.
+
+    Args:
+        team: Team abbreviation
+
+    Returns:
+        Conference name ('AFC' or 'NFC')
+
+    Raises:
+        ValueError: If team is invalid
+    """
+    from nflplotpy.data.team_info import get_team_mapping
+
+    team = validate_teams(team)[0]  # Validate and normalize
+    team_mapping = get_team_mapping()
+
+    if team not in team_mapping:
+        msg = f"Invalid team: {team}"
+        raise ValueError(msg)
+
+    return team_mapping[team]["conference"]
+
+
+def get_team_division(team: str) -> str:
+    """Get the division for a given team.
+
+    Args:
+        team: Team abbreviation
+
+    Returns:
+        Division name (e.g., 'AFC East', 'NFC West')
+
+    Raises:
+        ValueError: If team is invalid
+    """
+    from nflplotpy.data.team_info import get_team_mapping
+
+    team = validate_teams(team)[0]  # Validate and normalize
+    team_mapping = get_team_mapping()
+
+    if team not in team_mapping:
+        msg = f"Invalid team: {team}"
+        raise ValueError(msg)
+
+    return team_mapping[team]["division"]
+
+
+def get_teams_by_conference(conference: str) -> list[str]:
+    """Get all teams in a given conference.
+
+    Args:
+        conference: Conference name ('AFC' or 'NFC')
+
+    Returns:
+        List of team abbreviations in the conference
+
+    Raises:
+        ValueError: If conference is invalid
+    """
+    if conference.upper() not in ["AFC", "NFC"]:
+        msg = f"Invalid conference: {conference}. Must be 'AFC' or 'NFC'"
+        raise ValueError(msg)
+
+    from nflplotpy.data.team_info import get_team_mapping
+
+    team_mapping = get_team_mapping()
+
+    return [
+        team
+        for team, info in team_mapping.items()
+        if info["conference"].upper() == conference.upper()
+    ]
+
+
+def get_teams_by_division(division: str) -> list[str]:
+    """Get all teams in a given division.
+
+    Args:
+        division: Division name (e.g., 'AFC East', 'NFC West')
+
+    Returns:
+        List of team abbreviations in the division
+
+    Raises:
+        ValueError: If division is invalid
+    """
+    from nflplotpy.data.team_info import get_team_mapping
+
+    team_mapping = get_team_mapping()
+
+    # Get all valid divisions
+    valid_divisions = list(set(info["division"] for info in team_mapping.values()))
+
+    if division not in valid_divisions:
+        msg = f"Invalid division: {division}. Valid divisions: {valid_divisions}"
+        raise ValueError(msg)
+
+    return [team for team, info in team_mapping.items() if info["division"] == division]
+
+
+def get_division_rivals(team: str) -> list[str]:
+    """Get division rivals for a given team (excluding the team itself).
+
+    Args:
+        team: Team abbreviation
+
+    Returns:
+        List of rival team abbreviations in the same division
+    """
+    division = get_team_division(team)
+    division_teams = get_teams_by_division(division)
+
+    # Remove the input team from the list
+    team = validate_teams(team)[0]  # Normalize
+    return [t for t in division_teams if t != team]
+
+
 def get_nflverse_info() -> dict[str, Any]:
     """Get information about nflplotpy and nflverse ecosystem.
 
