@@ -13,6 +13,12 @@ from nflplotpy.core.logos import get_asset_manager, get_team_logo
 from nflplotpy.core.utils import validate_teams
 
 
+def _raise_file_not_found(image_path) -> None:
+    """Raise FileNotFoundError for missing file."""
+    msg = f"Image file not found: {image_path}"
+    raise FileNotFoundError(msg)
+
+
 def _pil_to_base64(pil_image) -> str:
     """Convert PIL image to base64 string for plotly."""
     buffer = BytesIO()
@@ -405,6 +411,7 @@ def add_image_from_path_trace(
         Updated plotly figure
     """
     from pathlib import Path
+
     import requests
     from PIL import Image
 
@@ -419,7 +426,7 @@ def add_image_from_path_trace(
             # Load from local file
             image_path = Path(path).expanduser().resolve()
             if not image_path.exists():
-                raise FileNotFoundError(f"Image file not found: {image_path}")
+                _raise_file_not_found(image_path)
             image = Image.open(image_path)
 
         # Convert to base64
@@ -467,21 +474,20 @@ def create_nfl_color_scale_plotly(
     Returns:
         Dictionary suitable for plotly color mapping
     """
-    from ..matplotlib.scales import (
-        scale_color_nfl,
+    from nflplotpy.matplotlib.scales import (
         scale_color_conference,
         scale_color_division,
+        scale_color_nfl,
     )
 
     if scale_type == "team":
         return scale_color_nfl(teams, color_type=color_type, guide=False, **kwargs)
-    elif scale_type == "conference":
+    if scale_type == "conference":
         return scale_color_conference(teams, guide=False, **kwargs)
-    elif scale_type == "division":
+    if scale_type == "division":
         return scale_color_division(teams, guide=False, **kwargs)
-    else:
-        msg = f"Unknown scale_type: {scale_type}"
-        raise ValueError(msg)
+    msg = f"Unknown scale_type: {scale_type}"
+    raise ValueError(msg)
 
 
 def apply_nfl_color_scale_plotly(
@@ -527,7 +533,7 @@ def apply_nfl_color_scale_plotly(
 def add_quantile_lines_plotly(
     fig: go.Figure,
     data: list[float],
-    quantiles: list[float] = [0.25, 0.75],
+    quantiles: list[float] | None = None,
     axis: str = "both",
     **kwargs,
 ) -> go.Figure:
@@ -544,6 +550,8 @@ def add_quantile_lines_plotly(
         Updated plotly figure
     """
     # Default line styling
+    if quantiles is None:
+        quantiles = [0.25, 0.75]
     line_kwargs = {
         "line_color": "orange",
         "line_dash": "dot",
@@ -595,7 +603,6 @@ def add_reference_band_plotly(
     Returns:
         Updated plotly figure
     """
-    import plotly.graph_objects as go
 
     if band_type == "std":
         center = np.mean(data)
@@ -628,7 +635,7 @@ def add_reference_band_plotly(
             y0=lower,
             y1=upper,
             fillcolor=fillcolor,
-            line=dict(width=0),
+            line={"width": 0},
             layer="below",
             **kwargs,
         )
@@ -647,7 +654,7 @@ def add_reference_band_plotly(
             y0=y_range[0],
             y1=y_range[1],
             fillcolor=fillcolor,
-            line=dict(width=0),
+            line={"width": 0},
             layer="below",
             **kwargs,
         )
@@ -714,7 +721,7 @@ def create_interactive_team_plot(
                     x=x,
                     y=y,
                     mode="markers",
-                    marker=dict(size=20, color="rgba(0,0,0,0)"),
+                    marker={"size": 20, "color": "rgba(0,0,0,0)"},
                     customdata=customdata,
                     hovertemplate=hover_template,
                     showlegend=False,
@@ -732,9 +739,9 @@ def create_interactive_team_plot(
                     x=x,
                     y=y,
                     mode="markers",
-                    marker=dict(
-                        size=15, color=colors, line=dict(width=2, color="white")
-                    ),
+                    marker={
+                        "size": 15, "color": colors, "line": {"width": 2, "color": "white"}
+                    },
                     customdata=customdata,
                     hovertemplate=hover_template,
                     showlegend=False,

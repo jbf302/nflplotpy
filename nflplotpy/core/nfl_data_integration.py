@@ -7,7 +7,6 @@ package's comprehensive player database.
 from __future__ import annotations
 
 import warnings
-from typing import Optional
 
 
 class NFLDataPlayerManager:
@@ -25,7 +24,6 @@ class NFLDataPlayerManager:
 
         try:
             import nfl_data_py as nfl
-            import pandas as pd
 
             self._id_data = nfl.import_ids()
 
@@ -52,7 +50,7 @@ class NFLDataPlayerManager:
             warnings.warn(f"Failed to load nfl_data_py: {e}", stacklevel=2)
             return False
 
-    def gsis_to_espn(self, gsis_id: str) -> Optional[str]:
+    def gsis_to_espn(self, gsis_id: str) -> str | None:
         """Convert GSIS ID to ESPN ID.
 
         Args:
@@ -86,8 +84,8 @@ class NFLDataPlayerManager:
         return None
 
     def name_to_ids(
-        self, player_name: str, team: Optional[str] = None
-    ) -> dict[str, Optional[str]]:
+        self, player_name: str, team: str | None = None
+    ) -> dict[str, str | None]:
         """Find player IDs by name using fuzzy matching.
 
         Args:
@@ -164,7 +162,7 @@ class NFLDataPlayerManager:
 
     def get_player_info_by_id(
         self, player_id: str, id_type: str = "gsis"
-    ) -> dict[str, Optional[str]]:
+    ) -> dict[str, str | None]:
         """Get comprehensive player info by ID.
 
         Args:
@@ -188,7 +186,7 @@ class NFLDataPlayerManager:
             column_map = {"gsis": "gsis_id", "espn": "espn_id", "nfl": "nfl_id"}
 
             if id_type not in column_map:
-                raise ValueError(f"Unsupported ID type: {id_type}")
+                self._raise_unsupported_id_type(id_type)
 
             column_name = column_map[id_type]
 
@@ -233,7 +231,12 @@ class NFLDataPlayerManager:
         self._cache[cache_key] = result
         return result
 
-    def get_all_players(self, active_only: bool = True) -> Optional[object]:
+    def _raise_unsupported_id_type(self, id_type: str) -> None:
+        """Raise ValueError for unsupported ID type."""
+        msg = f"Unsupported ID type: {id_type}"
+        raise ValueError(msg)
+
+    def get_all_players(self, active_only: bool = True) -> object | None:
         """Get all players data.
 
         Args:
@@ -259,7 +262,7 @@ class NFLDataPlayerManager:
 
 
 # Singleton instance
-_nfl_data_manager: Optional[NFLDataPlayerManager] = None
+_nfl_data_manager: NFLDataPlayerManager | None = None
 
 
 def get_nfl_data_manager() -> NFLDataPlayerManager:

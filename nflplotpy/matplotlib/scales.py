@@ -560,7 +560,7 @@ def create_nfl_color_palette(
         # Return all team colors
         from nflplotpy.core.colors import NFL_TEAM_COLORS
 
-        return [NFL_TEAM_COLORS[team][color_type] for team in NFL_TEAM_COLORS.keys()]
+        return [NFL_TEAM_COLORS[team][color_type] for team in NFL_TEAM_COLORS]
 
     # Use appropriate scale function
     if scale_type == "team":

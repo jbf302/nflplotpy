@@ -389,7 +389,7 @@ def get_teams_by_division(division: str) -> list[str]:
     team_mapping = get_team_mapping()
 
     # Get all valid divisions
-    valid_divisions = list(set(info["division"] for info in team_mapping.values()))
+    valid_divisions = list({info["division"] for info in team_mapping.values()})
 
     if division not in valid_divisions:
         msg = f"Invalid division: {division}. Valid divisions: {valid_divisions}"

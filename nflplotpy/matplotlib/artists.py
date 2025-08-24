@@ -16,6 +16,32 @@ if TYPE_CHECKING:
     import matplotlib.pyplot as plt
 
 
+def _warn_quantile_range(q: float) -> None:
+    """Warn about quantile out of range."""
+    import warnings
+    warnings.warn(f"Quantile {q} not in range [0,1], skipping", stacklevel=3)
+
+
+def _warn_unknown_stat_type(stat_type: str, available: list[str]) -> None:
+    """Warn about unknown stat type."""
+    import warnings
+    warnings.warn(
+        f"Unknown stat_type: {stat_type}. Available: {available}", stacklevel=3
+    )
+
+
+def _warn_unknown_line_type(line_type: str) -> None:
+    """Warn about unknown line type."""
+    import warnings
+    warnings.warn(f"Unknown line_type: {line_type}", stacklevel=3)
+
+
+def _raise_file_not_found(image_path) -> None:
+    """Raise FileNotFoundError for missing file."""
+    msg = f"Image file not found: {image_path}"
+    raise FileNotFoundError(msg)
+
+
 class NFLLogoArtist(Artist):
     """Custom matplotlib artist for rendering NFL logos."""
 
@@ -364,7 +390,7 @@ def add_mean_lines(
 def add_quantile_lines(
     ax: plt.Axes,
     data: np.ndarray | list[float],
-    quantiles: list[float] = [0.25, 0.75],
+    quantiles: list[float] | None = None,
     axis: str = "both",
     **kwargs,
 ):
@@ -377,6 +403,8 @@ def add_quantile_lines(
         axis: Which axis to add lines ('x', 'y', 'both')
         **kwargs: Arguments passed to axhline/axvline
     """
+    if quantiles is None:
+        quantiles = [0.25, 0.75]
     if isinstance(data, list):
         data = np.array(data)
 
@@ -386,7 +414,7 @@ def add_quantile_lines(
 
     for q in quantiles:
         if not 0 <= q <= 1:
-            warnings.warn(f"Quantile {q} not in range [0,1], skipping", stacklevel=2)
+            _warn_quantile_range(q)
             continue
 
         q_val = np.quantile(data, q)
@@ -401,7 +429,7 @@ def add_quantile_lines(
 def add_percentile_lines(
     ax: plt.Axes,
     data: np.ndarray | list[float],
-    percentiles: list[int] = [25, 75],
+    percentiles: list[int] | None = None,
     axis: str = "both",
     **kwargs,
 ):
@@ -415,6 +443,8 @@ def add_percentile_lines(
         **kwargs: Arguments passed to axhline/axvline
     """
     # Convert percentiles to quantiles
+    if percentiles is None:
+        percentiles = [25, 75]
     quantiles = [p / 100 for p in percentiles]
 
     # Default styling for percentiles
@@ -427,7 +457,7 @@ def add_percentile_lines(
 def add_std_lines(
     ax: plt.Axes,
     data: np.ndarray | list[float],
-    n_std: list[float] = [1, 2],
+    n_std: list[float] | None = None,
     axis: str = "both",
     center: str = "mean",
     **kwargs,
@@ -442,6 +472,8 @@ def add_std_lines(
         center: Center point ('mean' or 'median')
         **kwargs: Arguments passed to axhline/axvline
     """
+    if n_std is None:
+        n_std = [1, 2]
     if isinstance(data, list):
         data = np.array(data)
 
@@ -610,10 +642,7 @@ def add_nfl_league_averages(
     }
 
     if stat_type not in league_averages:
-        warnings.warn(
-            f"Unknown stat_type: {stat_type}. Available: {list(league_averages.keys())}",
-            stacklevel=2,
-        )
+        _warn_unknown_stat_type(stat_type, list(league_averages.keys()))
         return
 
     avg_val = league_averages[stat_type]
@@ -638,7 +667,7 @@ def add_nfl_league_averages(
 def add_multiple_reference_lines(
     ax: plt.Axes,
     data: np.ndarray | list[float],
-    line_types: list[str] = ["mean", "median"],
+    line_types: list[str] | None = None,
     axis: str = "both",
     **kwargs,
 ):
@@ -651,6 +680,8 @@ def add_multiple_reference_lines(
         axis: Which axis to add lines ('x', 'y', 'both')
         **kwargs: Additional arguments
     """
+    if line_types is None:
+        line_types = ["mean", "median"]
     if isinstance(data, list):
         data = np.array(data)
 
@@ -668,7 +699,7 @@ def add_multiple_reference_lines(
         elif line_type == "iqr":
             add_iqr_lines(ax, data, axis, **kwargs)
         else:
-            warnings.warn(f"Unknown line_type: {line_type}", stacklevel=2)
+            _warn_unknown_line_type(line_type)
 
 
 def add_image_from_path(
@@ -726,7 +757,7 @@ def add_image_from_path(
 
     import requests
     from matplotlib import colors as mcolors
-    from PIL import ImageEnhance, ImageOps
+    from PIL import ImageEnhance
 
     try:
         # Load image from path or URL
@@ -739,7 +770,7 @@ def add_image_from_path(
             # Load from local file
             image_path = Path(path).expanduser().resolve()
             if not image_path.exists():
-                raise FileNotFoundError(f"Image file not found: {image_path}")
+                _raise_file_not_found(image_path)
             image = Image.open(image_path)
 
         # Convert to RGBA to handle all image types consistently
