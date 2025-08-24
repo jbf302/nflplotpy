@@ -56,7 +56,7 @@ class PlayerIDManager:
     def __init__(self):
         """Initialize player ID manager."""
         self._nfl_data_manager = get_nfl_data_manager()
-        
+
         # Fallback test mappings if nfl_data_py is not available
         self._test_mappings = {
             "00-0033873": "3139477",  # Patrick Mahomes
@@ -421,7 +421,7 @@ def discover_player_id(
 
 
 def get_player_info_by_id(
-    player_id: str, id_type: str = 'gsis'
+    player_id: str, id_type: str = "gsis"
 ) -> dict[str, str | None]:
     """Get comprehensive player information by ID.
 
@@ -439,6 +439,7 @@ def get_player_info_by_id(
     """
     # Get the NFLDataPlayerManager directly
     from .nfl_data_integration import get_nfl_data_manager
+
     nfl_manager = get_nfl_data_manager()
     return nfl_manager.get_player_info_by_id(player_id, id_type)
 
