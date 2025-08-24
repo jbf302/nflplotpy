@@ -375,3 +375,383 @@ def add_mean_lines(
         fig.add_vline(x=mean_val, **line_kwargs)
 
     return fig
+
+
+def add_image_from_path_trace(
+    fig: go.Figure,
+    path: str,
+    x: float,
+    y: float,
+    size: float = 0.1,
+    opacity: float = 1.0,
+    layer: str = "above",
+    **kwargs,
+) -> go.Figure:
+    """Add image from URL or path to plotly figure.
+
+    Plotly equivalent of matplotlib's add_image_from_path.
+
+    Args:
+        fig: Plotly figure
+        path: URL or local file path to image
+        x: X position (in data coordinates)
+        y: Y position (in data coordinates)
+        size: Image size (relative to plot)
+        opacity: Image opacity (0-1)
+        layer: Image layer ('above', 'below')
+        **kwargs: Additional arguments
+
+    Returns:
+        Updated plotly figure
+    """
+    from pathlib import Path
+    import requests
+    from PIL import Image
+
+    try:
+        # Load image from path or URL
+        if path.startswith(("http://", "https://")):
+            # Download from URL
+            response = requests.get(path, timeout=30)
+            response.raise_for_status()
+            image = Image.open(BytesIO(response.content))
+        else:
+            # Load from local file
+            image_path = Path(path).expanduser().resolve()
+            if not image_path.exists():
+                raise FileNotFoundError(f"Image file not found: {image_path}")
+            image = Image.open(image_path)
+
+        # Convert to base64
+        img_base64 = _pil_to_base64(image)
+
+        # Add image to layout
+        fig.add_layout_image(
+            dict(
+                source=img_base64,
+                xref="x",
+                yref="y",
+                x=x,
+                y=y,
+                sizex=size,
+                sizey=size,
+                sizing="contain",
+                opacity=opacity,
+                layer=layer,
+                xanchor="center",
+                yanchor="middle",
+                **kwargs,
+            )
+        )
+
+        return fig
+
+    except Exception as e:
+        import warnings
+
+        warnings.warn(f"Could not add image from path '{path}': {e}", stacklevel=2)
+        return fig
+
+
+def create_nfl_color_scale_plotly(
+    teams: list[str], scale_type: str = "team", color_type: str = "primary", **kwargs
+) -> dict:
+    """Create plotly color scale from NFL teams.
+
+    Args:
+        teams: List of team abbreviations
+        scale_type: Type of scale ('team', 'conference', 'division')
+        color_type: Color type for team scale
+        **kwargs: Additional arguments
+
+    Returns:
+        Dictionary suitable for plotly color mapping
+    """
+    from ..matplotlib.scales import (
+        scale_color_nfl,
+        scale_color_conference,
+        scale_color_division,
+    )
+
+    if scale_type == "team":
+        return scale_color_nfl(teams, color_type=color_type, guide=False, **kwargs)
+    elif scale_type == "conference":
+        return scale_color_conference(teams, guide=False, **kwargs)
+    elif scale_type == "division":
+        return scale_color_division(teams, guide=False, **kwargs)
+    else:
+        msg = f"Unknown scale_type: {scale_type}"
+        raise ValueError(msg)
+
+
+def apply_nfl_color_scale_plotly(
+    fig: go.Figure,
+    teams: list[str],
+    scale_type: str = "team",
+    color_type: str = "primary",
+    trace_selector: dict | None = None,
+    **kwargs,
+) -> go.Figure:
+    """Apply NFL color scale to plotly figure traces.
+
+    Args:
+        fig: Plotly figure
+        teams: List of team abbreviations
+        scale_type: Type of scale ('team', 'conference', 'division')
+        color_type: Color type for team scale
+        trace_selector: Dictionary to select specific traces (optional)
+        **kwargs: Additional arguments
+
+    Returns:
+        Updated plotly figure
+    """
+    # Get color mapping
+    color_mapping = create_nfl_color_scale_plotly(
+        teams, scale_type, color_type, **kwargs
+    )
+    colors = [color_mapping.get(team, "#888888") for team in teams]
+
+    # Apply to traces
+    for trace in fig.data:
+        if trace_selector is None or all(
+            getattr(trace, k, None) == v for k, v in trace_selector.items()
+        ):
+            if hasattr(trace, "marker") and trace.marker is not None:
+                trace.marker.color = colors
+            elif hasattr(trace, "line") and trace.line is not None:
+                trace.line.color = colors
+
+    return fig
+
+
+def add_quantile_lines_plotly(
+    fig: go.Figure,
+    data: list[float],
+    quantiles: list[float] = [0.25, 0.75],
+    axis: str = "both",
+    **kwargs,
+) -> go.Figure:
+    """Add quantile reference lines to plotly figure.
+
+    Args:
+        fig: Plotly figure
+        data: Data to calculate quantiles from
+        quantiles: List of quantiles to show (0-1)
+        axis: Which axis to add lines ('x', 'y', 'both')
+        **kwargs: Arguments passed to add_hline/add_vline
+
+    Returns:
+        Updated plotly figure
+    """
+    # Default line styling
+    line_kwargs = {
+        "line_color": "orange",
+        "line_dash": "dot",
+        "opacity": 0.6,
+        "line_width": 1,
+    }
+    line_kwargs.update(kwargs)
+
+    for q in quantiles:
+        if not 0 <= q <= 1:
+            import warnings
+
+            warnings.warn(f"Quantile {q} not in range [0,1], skipping", stacklevel=2)
+            continue
+
+        q_val = np.quantile(data, q)
+
+        if axis in ["y", "both"]:
+            fig.add_hline(y=q_val, **line_kwargs)
+
+        if axis in ["x", "both"]:
+            fig.add_vline(x=q_val, **line_kwargs)
+
+    return fig
+
+
+def add_reference_band_plotly(
+    fig: go.Figure,
+    data: list[float],
+    band_type: str = "std",
+    n_std: float = 1,
+    quantiles: tuple[float, float] = (0.25, 0.75),
+    axis: str = "y",
+    fillcolor: str = "rgba(128,128,128,0.2)",
+    **kwargs,
+) -> go.Figure:
+    """Add reference band (shaded area) to plotly figure.
+
+    Args:
+        fig: Plotly figure
+        data: Data to calculate band from
+        band_type: Type of band ('std', 'quantile', 'iqr')
+        n_std: Number of standard deviations for 'std' band
+        quantiles: Tuple of quantiles for 'quantile' band
+        axis: Which axis for the band ('x' or 'y')
+        fillcolor: Band color
+        **kwargs: Additional arguments
+
+    Returns:
+        Updated plotly figure
+    """
+    import plotly.graph_objects as go
+
+    if band_type == "std":
+        center = np.mean(data)
+        std = np.std(data)
+        lower = center - n_std * std
+        upper = center + n_std * std
+    elif band_type == "quantile":
+        lower = np.quantile(data, quantiles[0])
+        upper = np.quantile(data, quantiles[1])
+    elif band_type == "iqr":
+        lower = np.quantile(data, 0.25)
+        upper = np.quantile(data, 0.75)
+    else:
+        msg = f"Invalid band_type: {band_type}. Must be 'std', 'quantile', or 'iqr'"
+        raise ValueError(msg)
+
+    # Add shape for the band
+    if axis == "y":
+        # Get x-axis range
+        x_range = (
+            fig.layout.xaxis.range
+            if fig.layout.xaxis and fig.layout.xaxis.range
+            else [-1, 1]
+        )
+
+        fig.add_shape(
+            type="rect",
+            x0=x_range[0],
+            x1=x_range[1],
+            y0=lower,
+            y1=upper,
+            fillcolor=fillcolor,
+            line=dict(width=0),
+            layer="below",
+            **kwargs,
+        )
+    elif axis == "x":
+        # Get y-axis range
+        y_range = (
+            fig.layout.yaxis.range
+            if fig.layout.yaxis and fig.layout.yaxis.range
+            else [-1, 1]
+        )
+
+        fig.add_shape(
+            type="rect",
+            x0=lower,
+            x1=upper,
+            y0=y_range[0],
+            y1=y_range[1],
+            fillcolor=fillcolor,
+            line=dict(width=0),
+            layer="below",
+            **kwargs,
+        )
+
+    return fig
+
+
+def create_interactive_team_plot(
+    teams: list[str],
+    x: list[float],
+    y: list[float],
+    hover_data: dict | None = None,
+    plot_type: str = "scatter",
+    show_logos: bool = True,
+    color_scale: str = "team",
+    **kwargs,
+) -> go.Figure:
+    """Create interactive NFL team plot with enhanced hover and click functionality.
+
+    Args:
+        teams: List of team abbreviations
+        x: X values
+        y: Y values
+        hover_data: Additional data to show on hover
+        plot_type: Type of plot ('scatter', 'bar')
+        show_logos: Whether to show team logos
+        color_scale: Color scale type ('team', 'conference', 'division')
+        **kwargs: Additional arguments
+
+    Returns:
+        Interactive plotly figure
+    """
+    # Validate inputs
+    if len(teams) != len(x) or len(teams) != len(y):
+        msg = "teams, x, and y must have the same length"
+        raise ValueError(msg)
+
+    # Get colors
+    color_mapping = create_nfl_color_scale_plotly(teams, color_scale)
+    colors = [color_mapping.get(team, "#888888") for team in teams]
+
+    # Create hover text
+    hover_template = "<b>%{customdata[0]}</b><br>"
+    hover_template += "X: %{x}<br>Y: %{y}<br>"
+
+    customdata = [[team] for team in teams]
+
+    if hover_data:
+        for key, values in hover_data.items():
+            hover_template += f"{key}: %{{customdata[{len(customdata[0])}]}}<br>"
+            for i, val in enumerate(values):
+                customdata[i].append(val)
+
+    hover_template += "<extra></extra>"
+
+    # Create figure based on plot type
+    fig = go.Figure()
+
+    if plot_type == "scatter":
+        if show_logos:
+            # Invisible points for hover + logos
+            fig.add_trace(
+                go.Scatter(
+                    x=x,
+                    y=y,
+                    mode="markers",
+                    marker=dict(size=20, color="rgba(0,0,0,0)"),
+                    customdata=customdata,
+                    hovertemplate=hover_template,
+                    showlegend=False,
+                    **kwargs,
+                )
+            )
+
+            # Add logos
+            for team, xi, yi in zip(teams, x, y):
+                add_nfl_logo_trace(fig, team, xi, yi, size=0.05)
+
+        else:
+            fig.add_trace(
+                go.Scatter(
+                    x=x,
+                    y=y,
+                    mode="markers",
+                    marker=dict(
+                        size=15, color=colors, line=dict(width=2, color="white")
+                    ),
+                    customdata=customdata,
+                    hovertemplate=hover_template,
+                    showlegend=False,
+                    **kwargs,
+                )
+            )
+
+    elif plot_type == "bar":
+        fig.add_trace(
+            go.Bar(
+                x=teams,
+                y=y,
+                marker_color=colors,
+                customdata=customdata,
+                hovertemplate=hover_template,
+                **kwargs,
+            )
+        )
+
+    return fig
