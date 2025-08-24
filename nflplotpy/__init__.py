@@ -5,7 +5,7 @@ A Python equivalent to R's nflplotR package, providing NFL-specific
 plotting capabilities with matplotlib, plotly, and seaborn integration.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.9.0"
 __author__ = "nflverse"
 
 # Core functionality
