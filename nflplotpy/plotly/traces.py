@@ -740,7 +740,9 @@ def create_interactive_team_plot(
                     y=y,
                     mode="markers",
                     marker={
-                        "size": 15, "color": colors, "line": {"width": 2, "color": "white"}
+                        "size": 15,
+                        "color": colors,
+                        "line": {"width": 2, "color": "white"},
                     },
                     customdata=customdata,
                     hovertemplate=hover_template,

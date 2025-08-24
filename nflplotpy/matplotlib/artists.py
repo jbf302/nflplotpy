@@ -19,12 +19,14 @@ if TYPE_CHECKING:
 def _warn_quantile_range(q: float) -> None:
     """Warn about quantile out of range."""
     import warnings
+
     warnings.warn(f"Quantile {q} not in range [0,1], skipping", stacklevel=3)
 
 
 def _warn_unknown_stat_type(stat_type: str, available: list[str]) -> None:
     """Warn about unknown stat type."""
     import warnings
+
     warnings.warn(
         f"Unknown stat_type: {stat_type}. Available: {available}", stacklevel=3
     )
@@ -33,6 +35,7 @@ def _warn_unknown_stat_type(stat_type: str, available: list[str]) -> None:
 def _warn_unknown_line_type(line_type: str) -> None:
     """Warn about unknown line type."""
     import warnings
+
     warnings.warn(f"Unknown line_type: {line_type}", stacklevel=3)
 
 
