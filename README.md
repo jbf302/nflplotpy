@@ -82,6 +82,12 @@ fig, ax = plt.subplots()
 # Add team logos
 nflplot.add_nfl_logo(ax, 'KC', x=0.5, y=0.5, width=0.1)
 
+# 🆕 Add team wordmarks  
+nflplot.add_team_wordmark(ax, 'KC', x=0.3, y=0.8, width=0.12)
+
+# 🆕 Add player headshots
+nflplot.add_player_headshot(ax, 'Patrick Mahomes', x=0.7, y=0.2, width=0.1)
+
 # Add reference lines
 nflplot.add_median_lines(ax, data, axis='both')
 
@@ -110,6 +116,14 @@ fig = nflplot.plot_player_comparison(
 # Style pandas DataFrames with team logos
 styled = nflplot.style_with_logos(df, 'team')
 styled.to_html('nfl_table.html')
+
+# 🆕 Add team wordmarks to tables
+styled_wm = nflplot.style_with_wordmarks(df, 'team', wordmark_height=25)
+
+# 🆕 Add player headshots to tables  
+styled_hs = nflplot.style_with_headshots(
+    player_df, 'player', id_type='name', headshot_height=40
+)
 
 # Comprehensive NFL-themed tables
 table = nflplot.create_nfl_table(
